@@ -1,1 +1,6 @@
 Initial check-in for csv adapter.
+
+2016-12-08:
+- to add the multiple configuration sections within a configuration file.
+- to add 'auto.close' support for deletion.
+- to add sample_config as the example for the config.
