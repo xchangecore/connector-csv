@@ -22,6 +22,10 @@ import com.saic.precis.x2009.x06.structures.WorkProductDocument.WorkProduct;
 
 public class WebServiceClient {
 
+    private static final Logger logger = LoggerFactory.getLogger(WebServiceClient.class);
+
+    private static WebServiceTemplate webServiceTemplate;
+
     public static WebServiceTemplate getWebServiceTemplate() {
 
         return webServiceTemplate;
@@ -31,10 +35,6 @@ public class WebServiceClient {
 
         WebServiceClient.webServiceTemplate = webServiceTemplate;
     }
-
-    private static final Logger logger = LoggerFactory.getLogger(WebServiceClient.class);
-
-    private static WebServiceTemplate webServiceTemplate;
 
     public WebServiceClient() {
 
@@ -62,17 +62,20 @@ public class WebServiceClient {
 
         // logger.debug("createIncident: " + record);
         final CreateIncidentRequestDocument request = CreateIncidentRequestDocument.Factory.newInstance();
-        request.addNewCreateIncidentRequest().addNewIncident().set(Util.getIncidentDocument(record));
+        request.addNewCreateIncidentRequest().addNewIncident().set(Util.getIncidentDocument(
+            record));
 
-        final CreateIncidentResponseDocument response = (CreateIncidentResponseDocument) this.sendAndReceive(request);
+        final CreateIncidentResponseDocument response = (CreateIncidentResponseDocument) this.sendAndReceive(
+            request);
 
-        if ((response != null) &&
-            response.getCreateIncidentResponse().getWorkProductPublicationResponse().getWorkProductProcessingStatus().getStatus().equals(ProcessingStateType.ACCEPTED)) {
+        if (response != null &&
+            response.getCreateIncidentResponse().getWorkProductPublicationResponse().getWorkProductProcessingStatus().getStatus().equals(
+                ProcessingStateType.ACCEPTED)) {
             final WorkProduct workProduct = response.getCreateIncidentResponse().getWorkProductPublicationResponse().getWorkProduct();
             record.setIgID(Util.getIGID(workProduct));
             record.setWorkProductID(Util.getProductIdentification(workProduct));
-            logger.debug("createIncident: IGID: " + record.getIgID() + ", WPID: " +
-                record.getWorkProductID());
+            logger.debug("createIncident: create: [" + record.getIgID() + "] @Core: " + record.getCoreUri() +
+                " ... successfully ...");
             return true;
         }
         return false;
@@ -83,16 +86,20 @@ public class WebServiceClient {
         // logger.debug("deleteIncident: " + record);
         final CloseIncidentRequestDocument closeRequest = CloseIncidentRequestDocument.Factory.newInstance();
         closeRequest.addNewCloseIncidentRequest().setIncidentID(record.getIgID());
-        final CloseIncidentResponseDocument closeResponse = (CloseIncidentResponseDocument) this.sendAndReceive(closeRequest);
-        if ((closeResponse != null) &&
-            closeResponse.getCloseIncidentResponse().getWorkProductProcessingStatus().getStatus().equals(ProcessingStateType.ACCEPTED)) {
+        final CloseIncidentResponseDocument closeResponse = (CloseIncidentResponseDocument) this.sendAndReceive(
+            closeRequest);
+        if (closeResponse != null &&
+            closeResponse.getCloseIncidentResponse().getWorkProductProcessingStatus().getStatus().equals(
+                ProcessingStateType.ACCEPTED)) {
             final ArchiveIncidentRequestDocument archiveRequest = ArchiveIncidentRequestDocument.Factory.newInstance();
             archiveRequest.addNewArchiveIncidentRequest().setIncidentID(record.getIgID());
-            final ArchiveIncidentResponseDocument archiveResponse = (ArchiveIncidentResponseDocument) this.sendAndReceive(archiveRequest);
-            if ((archiveResponse != null) &&
-                archiveResponse.getArchiveIncidentResponse().getWorkProductProcessingStatus().getStatus().equals(ProcessingStateType.ACCEPTED)) {
-                logger.debug("deleteIncident: delete: [" + record.getIgID() +
-                    "] ... successful ...");
+            final ArchiveIncidentResponseDocument archiveResponse = (ArchiveIncidentResponseDocument) this.sendAndReceive(
+                archiveRequest);
+            if (archiveResponse != null &&
+                archiveResponse.getArchiveIncidentResponse().getWorkProductProcessingStatus().getStatus().equals(
+                    ProcessingStateType.ACCEPTED)) {
+                logger.debug("deleteIncident: delete: [" + record.getIgID() + "] @Core: " + record.getContent() +
+                    " ... successful ...");
                 return true;
             }
         }
@@ -114,15 +121,25 @@ public class WebServiceClient {
 
         // logger.debug("updateIncident: " + record);
         final UpdateIncidentRequestDocument request = UpdateIncidentRequestDocument.Factory.newInstance();
-        request.addNewUpdateIncidentRequest().addNewIncident().set(Util.getIncidentDocument(record));
-        request.getUpdateIncidentRequest().addNewWorkProductIdentification().set(Util.getProductIdentification(record.getWorkProductID()));
+        request.addNewUpdateIncidentRequest().addNewIncident().set(Util.getIncidentDocument(
+            record));
+        request.getUpdateIncidentRequest().addNewWorkProductIdentification().set(
+            Util.getProductIdentification(record.getWorkProductID()));
 
-        final UpdateIncidentResponseDocument response = (UpdateIncidentResponseDocument) this.sendAndReceive(request);
-        if ((response != null) &&
-            response.getUpdateIncidentResponse().getWorkProductPublicationResponse().getWorkProductProcessingStatus().equals(ProcessingStateType.ACCEPTED)) {
+        // logger.debug("Update: " + request);
+
+        final UpdateIncidentResponseDocument response = (UpdateIncidentResponseDocument) this.sendAndReceive(
+            request);
+
+        // logger.debug("Update: Response: " + response);
+
+        if (response != null &&
+            response.getUpdateIncidentResponse().getWorkProductPublicationResponse().getWorkProductProcessingStatus().equals(
+                ProcessingStateType.ACCEPTED)) {
             final WorkProduct workProduct = response.getUpdateIncidentResponse().getWorkProductPublicationResponse().getWorkProduct();
             record.setWorkProductID(Util.getProductIdentification(workProduct));
-            logger.debug("updateIncident: new WPID: " + record.getWorkProductID());
+            logger.debug("updateIncident: update [: " + record.getIgID() + "] @Core: " + record.getCoreUri() +
+                " ... successfully");
             return true;
         }
         return false;

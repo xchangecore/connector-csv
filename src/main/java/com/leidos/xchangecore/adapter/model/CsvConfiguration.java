@@ -34,6 +34,7 @@ implements Serializable {
     public static final String FN_DistanceFilterText = "distance.filter.text";
     public static final String FN_Index = "index";
     public static final String FN_Description = "description";
+    public static final String FN_AutoClose = "auto.close";
     public static final String FN_URLHost = "url.host";
     public static final String FN_Username = "url.username";
     public static final String FN_Password = "url.password";
@@ -46,6 +47,7 @@ implements Serializable {
         FN_Latitude,
         FN_Longitude,
         FN_FilterName,
+        FN_Index,
         FN_Description,
     };
 
@@ -62,12 +64,16 @@ implements Serializable {
     private String latitude;
     private String longitude;
     private String categoryPrefix = "";
-
     private String categoryFixed = "";
 
+    @Column(columnDefinition = "VARCHAR(65536)")
     private String description = "title.category";
 
+    @Column(columnDefinition = "VARCHAR(65536)")
     private String index = "title.category.latitude.longitude";
+
+    private boolean autoClose = false;
+
     private String uri = "http://localhost";
     private String username = "xchangecore";
     private String password = "xchangecore";
@@ -75,32 +81,32 @@ implements Serializable {
 
     public String getCategory() {
 
-        return category;
+        return this.category;
     }
 
     public String getCategoryFixed() {
 
-        return categoryFixed;
+        return this.categoryFixed;
     }
 
     public String getCategoryPrefix() {
 
-        return categoryPrefix;
+        return this.categoryPrefix;
     }
 
     public String getDescription() {
 
-        return description;
+        return this.description;
     }
 
     public String getDistance() {
 
-        return distance;
+        return this.distance;
     }
 
     public String getDistanceFilterText() {
 
-        return distanceFilterText;
+        return this.distanceFilterText;
     }
 
     public String getFieldValue(String columnName) {
@@ -108,9 +114,9 @@ implements Serializable {
         try {
             return (String) this.getClass().getDeclaredField(columnName).get(this);
         } catch (final Throwable e) {
-            if (e instanceof NoSuchFieldException)
+            if (e instanceof NoSuchFieldException) {
                 return "";
-            else {
+            } else {
                 logger.error("getFieldValue: " + columnName + ": " + e.getMessage());
                 return null;
             }
@@ -119,91 +125,104 @@ implements Serializable {
 
     public String getFilter() {
 
-        return filter;
+        return this.filter;
     }
 
     public String getFilterText() {
 
-        return filterText;
+        return this.filterText;
     }
 
     public String getId() {
 
-        return id;
+        return this.id;
     }
 
     public String getIndex() {
 
-        return index;
+        return this.index;
     }
 
     public String getLatitude() {
 
-        return latitude;
+        return this.latitude;
     }
 
     public String getLongitude() {
 
-        return longitude;
+        return this.longitude;
     }
 
     public String getPassword() {
 
-        return password;
+        return this.password;
     }
 
     public String getRedirectUrl() {
 
-        return redirectUrl;
+        return this.redirectUrl;
     }
 
     public String getTitle() {
 
-        return title;
+        return this.title;
     }
 
     public String getTitlePrefix() {
 
-        return titlePrefix;
+        return this.titlePrefix;
     }
 
     public String getUri() {
 
-        return uri;
+        return this.uri;
     }
 
     public String getUsername() {
 
-        return username;
+        return this.username;
     }
 
     public String getValue(String key) {
 
-        if (key.equals(FN_Category))
-            return getCategory();
-        else if (key.equalsIgnoreCase(FN_Description))
-            return getDescription();
-        else if (key.equalsIgnoreCase(FN_FilterName))
-            return getFilter();
-        else if (key.equalsIgnoreCase(FN_Latitude))
-            return getLatitude();
-        else if (key.equalsIgnoreCase(FN_Longitude))
-            return getLongitude();
-        else if (key.equalsIgnoreCase(FN_Title))
-            return getTitle();
-        else if (key.equalsIgnoreCase(FN_Category))
-            return getCategory();
-        else if (key.equalsIgnoreCase(FN_Distance))
-            return getDistance();
-        else if (key.equalsIgnoreCase(FN_DistanceFilterText))
-            return getDistanceFilterText();
-        else
+        if (key.equals(FN_Category)) {
+            return this.getCategory();
+        } else if (key.equalsIgnoreCase(FN_Description)) {
+            return this.getDescription();
+        } else if (key.equalsIgnoreCase(FN_FilterName)) {
+            return this.getFilter();
+        } else if (key.equalsIgnoreCase(FN_Latitude)) {
+            return this.getLatitude();
+        } else if (key.equalsIgnoreCase(FN_Longitude)) {
+            return this.getLongitude();
+        } else if (key.equalsIgnoreCase(FN_Title)) {
+            return this.getTitle();
+        } else if (key.equalsIgnoreCase(FN_Category)) {
+            return this.getCategory();
+        } else if (key.equalsIgnoreCase(FN_Distance)) {
+            return this.getDistance();
+        } else if (key.equalsIgnoreCase(FN_DistanceFilterText)) {
+            return this.getDistanceFilterText();
+        } else if (key.equalsIgnoreCase(FN_Index)) {
+            return this.getIndex();
+        } else {
             return null;
+        }
+    }
+
+    public boolean isAutoClose() {
+
+        return autoClose;
     }
 
     public boolean isValid() {
 
-        return getTitle() == null || getTitle().length() == 0 ? false : true;
+        return this.getTitle() == null || this.getTitle().length() == 0 ? false : true;
+    }
+
+    private void setAutoClose(String ac) {
+
+        this.autoClose = ac.equalsIgnoreCase("true") == true || ac.equals("1") == true ? true : false;
     }
 
     public void setCategory(String category) {
@@ -260,42 +279,45 @@ implements Serializable {
 
         logger.debug("key/value: [" + keyAndValue[0] + "/" + keyAndValue[1] + "]");
 
-        if (keyAndValue[0].equalsIgnoreCase(FN_Category))
-            setCategory(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_Title))
-            setTitle(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_TitlePrefix))
-            setTitlePrefix(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_Latitude))
-            setLatitude(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_Longitude))
-            setLongitude(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_FilterName))
-            setFilter(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_FilterText))
-            setFilterText(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_Index))
-            setIndex(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_Description))
-            setDescription(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_URLHost))
-            setUri(keyAndValue[1] + urlPostfix);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_Username))
-            setUsername(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_Password))
-            setPassword(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_RedirectUrl))
-            setRedirectUrl(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_CategoryPrefix))
-            setCategoryPrefix(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_CategoryFixed))
-            setCategoryFixed(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_Distance))
-            setDistance(keyAndValue[1]);
-        else if (keyAndValue[0].equalsIgnoreCase(FN_DistanceFilterText))
-            setDistanceFilterText(keyAndValue[1]);
-        else
+        if (keyAndValue[0].equalsIgnoreCase(FN_Category)) {
+            this.setCategory(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_Title)) {
+            this.setTitle(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_TitlePrefix)) {
+            this.setTitlePrefix(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_Latitude)) {
+            this.setLatitude(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_Longitude)) {
+            this.setLongitude(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_FilterName)) {
+            this.setFilter(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_FilterText)) {
+            this.setFilterText(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_Index)) {
+            this.setIndex(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_Description)) {
+            this.setDescription(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_URLHost)) {
+            this.setUri(keyAndValue[1] + urlPostfix);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_Username)) {
+            this.setUsername(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_Password)) {
+            this.setPassword(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_RedirectUrl)) {
+            this.setRedirectUrl(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_CategoryPrefix)) {
+            this.setCategoryPrefix(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_CategoryFixed)) {
+            this.setCategoryFixed(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_Distance)) {
+            this.setDistance(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_DistanceFilterText)) {
+            this.setDistanceFilterText(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_AutoClose)) {
+            this.setAutoClose(keyAndValue[1]);
+        } else {
             logger.warn("Invalid Key/Value: [" + keyAndValue[0] + "/" + keyAndValue[1] + "]");
+        }
     }
 
     public void setLatitude(String latitude) {
@@ -342,14 +364,17 @@ implements Serializable {
 
         final HashMap<String, String> map = new HashMap<String, String>();
 
-        if (getCategory().indexOf(".") == -1)
-            map.put(getCategory(), FN_Category);
-        if (getTitle().indexOf(".") == -1)
-            map.put(getTitle(), FN_Title);
-        if (getFilter().indexOf(".") == -1)
-            map.put(getFilter(), FN_FilterName);
-        map.put(getLatitude(), FN_Latitude);
-        map.put(getLongitude(), FN_Longitude);
+        if (this.getCategory().indexOf(".") == -1) {
+            map.put(this.getCategory(), FN_Category);
+        }
+        if (this.getTitle().indexOf(".") == -1) {
+            map.put(this.getTitle(), FN_Title);
+        }
+        if (this.getFilter().indexOf(".") == -1) {
+            map.put(this.getFilter(), FN_FilterName);
+        }
+        map.put(this.getLatitude(), FN_Latitude);
+        map.put(this.getLongitude(), FN_Longitude);
 
         return map;
     }
