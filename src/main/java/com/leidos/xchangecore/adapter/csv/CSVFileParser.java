@@ -91,7 +91,7 @@ public class CSVFileParser {
             record.setCreator(configMap.getId());
             record.setLastUpdated(currentDate);
             record.setCoreUri(configMap.getUri());
-            logger.debug("record: " + record.toString());
+            // logger.debug("record: " + record.toString());
         }
 
         parseRecords(records, configMap);
@@ -131,15 +131,15 @@ public class CSVFileParser {
         /*
         //Earth’s radius, sphere
         R=6378137
-
+        
         //offsets in meters
         dn = 100
         de = 100
-
+        
         //Coordinate offsets in radians
         dLat = dn/R
         dLon = de/(R*Cos(Pi*lat/180))
-
+        
         //OffsetPosition, decimal degrees
         latO = lat + dLat * 180/Pi
         lonO = lon + dLon * 180/Pi
@@ -305,8 +305,8 @@ public class CSVFileParser {
         logger.debug("filtered records: " + newRecords.size());
         final Set<MappedRecord> distanceSet = new HashSet<MappedRecord>();
         if (config.getDistance().length() > 0 && newRecords.size() > 1) {
-            final Double[][] boundingBox = this.calculateBoundingBox(newRecords, Double.parseDouble(
-                config.getDistance()));
+            final Double[][] boundingBox = this.calculateBoundingBox(newRecords,
+                    Double.parseDouble(config.getDistance()));
             final Collection<MappedRecord> newRecordSet = newRecords.values();
             for (final MappedRecord r : newRecordSet) {
                 if (r.getFilter().equalsIgnoreCase(config.getDistanceFilterText())) {
@@ -322,43 +322,40 @@ public class CSVFileParser {
         }
         distanceSet.clear();
 
-        // get the existed records for this creator, for example: target
-        final List<MappedRecord> existedRecordList = getMappedRecordDao().findByCreator(config.getId());
-        final Map<String, MappedRecord> existedRecordSet = new HashMap<String, MappedRecord>();
-        for (final MappedRecord record : existedRecordList) {
-            logger.debug("instance's Core: " + record.getCoreUri() + " and configuration's Core: " + config.getUri());
-            if (record.getCoreUri().equalsIgnoreCase(config.getUri())) {
-                existedRecordSet.put(record.getIndex(), record);
-            }
-        }
-        logger.debug("existed records: " + existedRecordSet.size());
-
-        // if the existed record contains the IGID, then we assume it's been saved in XchangeCore already
-        final Map<String, MappedRecord> inCoreSet = new HashMap<String, MappedRecord>();
-        for (final MappedRecord r : existedRecordList) {
-            if (r.getIgID() != null) {
-                inCoreSet.put(r.getIndex(), r);
-            }
-        }
-        logger.debug("records in Core: " + inCoreSet.size());
-
-        // if the in-core record is part of the new incident, we will perform an update of it
-        // if the in-core recrod is not part of the new incident, we will delete it from XchangeCore
-        final Set<String> inCoreKeySet = inCoreSet.keySet();
-        for (final String key : inCoreKeySet) {
-            if (newRecords.containsKey(key)) {
-                final MappedRecord record = newRecords.remove(key);
-                if (inCoreSet.get(key).getContent().equalsIgnoreCase(record.getContent()) == false) {
-                    record.setWorkProductID(inCoreSet.get(key).getWorkProductID());
-                    logger.debug("for update: WPID: " + record.getWorkProductID());
-                    this.updateRecords.put(key, record);
-                }
-            } else {
-                // logger.debug("IGID: " + key + " existed ... Auto.Close: " + (config.isAutoClose() ? "true" : "false"));
-                if (config.isAutoClose() == true) {
-                    this.deleteRecords.put(key, inCoreSet.get(key));
+        // get the existed records for this creator and the core, for example: target and spotonresponse'core
+        final List<MappedRecord> existedRecordList = getMappedRecordDao().findByCreator(config.getId(),
+                config.getUri());
+        logger.debug("[" + config.getId() + "]" + " @ [" + config.getUri() + "]");
+        if (existedRecordList.size() > 0) {
+            // if the existed record contains the IGID, then we assume it's been saved in XchangeCore already
+            final Map<String, MappedRecord> inCoreSet = new HashMap<String, MappedRecord>();
+            for (final MappedRecord r : existedRecordList) {
+                if (r.getIgID() != null) {
+                    inCoreSet.put(r.getIndex(), r);
                 }
             }
+            logger.debug("records in Core: " + inCoreSet.size());
+
+            // if the in-core record is part of the new incident, we will perform an update of it
+            // if the in-core recrod is not part of the new incident, we will delete it from XchangeCore
+            final Set<String> inCoreKeySet = inCoreSet.keySet();
+            for (final String key : inCoreKeySet) {
+                if (newRecords.containsKey(key)) {
+                    final MappedRecord record = newRecords.remove(key);
+                    if (inCoreSet.get(key).getContent().equalsIgnoreCase(record.getContent()) == false) {
+                        record.setWorkProductID(inCoreSet.get(key).getWorkProductID());
+                        logger.debug("for update: WPID: " + record.getWorkProductID());
+                        this.updateRecords.put(key, record);
+                    }
+                } else {
+                    // logger.debug("IGID: " + key + " existed ... Auto.Close: " + (config.isAutoClose() ? "true" : "false"));
+                    if (config.isAutoClose() == true) {
+                        this.deleteRecords.put(key, inCoreSet.get(key));
+                    }
+                }
+            }
+            // clean up the inCoreSet
+            inCoreSet.clear();
         }
         logger.debug("records need to be created: " + this.newRecords.size());
         logger.debug("records need to be updated: " + this.updateRecords.size());
@@ -366,8 +363,7 @@ public class CSVFileParser {
     }
 
     private void validateConfiguration(Configuration csvConfiguration,
-                                       MappingHeaderColumnNameTranslateMappingStrategy strategy,
-                                       CSVReader csvReader) throws Throwable {
+            MappingHeaderColumnNameTranslateMappingStrategy strategy, CSVReader csvReader) throws Throwable {
 
         strategy.captureHeader(csvReader);
 
@@ -395,10 +391,7 @@ public class CSVFileParser {
         for (int i = 0; i < indexHeaders.length; i++) {
             for (int j = 0; j < baseHeaders.length; j++) {
                 if (indexHeaders[i].equalsIgnoreCase(baseHeaders[j])) {
-                    return new int[] {
-                        i,
-                        j
-                    };
+                    return new int[] { i, j };
                 }
             }
         }
