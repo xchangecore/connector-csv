@@ -64,7 +64,7 @@ implements Serializable {
     private String categoryFixed = "";
     private String description = "title.category";
     private String index = "title.category.latitude.longitude";
-    private boolean autoClose = false;
+    private boolean autoClose = true;
     private String uri = "http://localhost";
     private String username = "xchangecore";
     private String password = "xchangecore";

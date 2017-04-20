@@ -1,5 +1,8 @@
 Initial check-in for csv adapter.
 
+2017-04-20:
+- Change the Configuration file autoClose default value to true for backward-compatible.
+
 2017-04-18:
 - Check-in the xcadapter.war
 
