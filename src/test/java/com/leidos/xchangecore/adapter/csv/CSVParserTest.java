@@ -37,6 +37,22 @@ public class CSVParserTest {
         }
     }
 
+    private void testWalmart() throws Throwable {
+
+        final String path = "src/main/webapp/config/walmart.config";
+        final FileInputStream fis = new FileInputStream(new File(path));
+        final File csvFile = new File("src/test/resources/walmart.csv");
+        final ConfigFilePaser configFileParser = new ConfigFilePaser("walmart.config", fis);
+        final CSVFileParser csvFileParser = new CSVFileParser(csvFile,
+            null,
+            configFileParser.getConfigMap());
+        final MappedRecord[] records = csvFileParser.getNewRecords();
+        for (final MappedRecord record : records) {
+            final IncidentType incident = Util.getIncidentDocument(record);
+            System.out.println("Record: " + incident);
+        }
+    }
+
     private void testCostco() throws Throwable {
 
         final String path = "src/main/webapp/config/costco.config";
@@ -63,13 +79,14 @@ public class CSVParserTest {
     @Test
     public void testCSVUpload() throws Throwable {
 
+        this.testWalmart();
         // this.testMacys();
         // this.testTarget();
         // this.testBoyd();
-        this.testCostco();
+        // this.testCostco();
         // this.testIrWin();
         // this.testWalgreen();
-        testLowes();
+        // testLowes();
     }
 
     private void testIrWin() throws Throwable {

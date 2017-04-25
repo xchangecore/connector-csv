@@ -16,7 +16,7 @@ import au.com.bytecode.opencsv.bean.CsvToBean;
 import au.com.bytecode.opencsv.bean.MappingStrategy;
 
 public class MappingCsvToBean
-extends CsvToBean<MappedRecord> {
+    extends CsvToBean<MappedRecord> {
 
     private static final Logger logger = LoggerFactory.getLogger(MappingCsvToBean.class);
 
@@ -44,7 +44,7 @@ extends CsvToBean<MappedRecord> {
 
     @Override
     protected Object convertValue(String value, PropertyDescriptor prop) throws InstantiationException,
-    IllegalAccessException {
+        IllegalAccessException {
 
         final PropertyEditor editor = getPropertyEditor(prop);
         Object obj = value;

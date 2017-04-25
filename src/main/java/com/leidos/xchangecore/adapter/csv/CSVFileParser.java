@@ -129,20 +129,10 @@ public class CSVFileParser {
             }
         }
         /*
-        //Earth’s radius, sphere
-        R=6378137
-        
-        //offsets in meters
-        dn = 100
-        de = 100
-        
-        //Coordinate offsets in radians
-        dLat = dn/R
-        dLon = de/(R*Cos(Pi*lat/180))
-        
-        //OffsetPosition, decimal degrees
-        latO = lat + dLat * 180/Pi
-        lonO = lon + dLon * 180/Pi
+         * Earth’s radius, sphere R=6378137
+         * offsets in meters dn = 100 de = 100
+         * Coordinate offsets in radians dLat = dn/R dLon =de/(R*Cos(Pi*lat/180))
+         * OffsetPosition, decimal degrees latO = lat + dLat * 180/Pi lonO = lon + dLon * 180/Pi
          */
         final double d = distance * 1000.0;
         final double deltaLat = d / Radius * 180 / Pi;
@@ -297,7 +287,7 @@ public class CSVFileParser {
 
         // find the matched filter text records
         for (final MappedRecord r : records) {
-            final boolean isMatched = r.getFilter().matches(pattern);
+            boolean isMatched = r.getFilter().matches(pattern);
             if (isMatched && negativeExpression == false || isMatched == false && negativeExpression == true) {
                 newRecords.put(r.getIndex(), r);
             }
@@ -305,8 +295,8 @@ public class CSVFileParser {
         logger.debug("filtered records: " + newRecords.size());
         final Set<MappedRecord> distanceSet = new HashSet<MappedRecord>();
         if (config.getDistance().length() > 0 && newRecords.size() > 1) {
-            final Double[][] boundingBox = this.calculateBoundingBox(newRecords,
-                    Double.parseDouble(config.getDistance()));
+            final Double[][] boundingBox = this.calculateBoundingBox(newRecords, Double.parseDouble(
+                config.getDistance()));
             final Collection<MappedRecord> newRecordSet = newRecords.values();
             for (final MappedRecord r : newRecordSet) {
                 if (r.getFilter().equalsIgnoreCase(config.getDistanceFilterText())) {
@@ -322,12 +312,14 @@ public class CSVFileParser {
         }
         distanceSet.clear();
 
-        // get the existed records for this creator and the core, for example: target and spotonresponse'core
+        // get the existed records for this creator and the core, for example:
+        // target and spotonresponse'core
         final List<MappedRecord> existedRecordList = getMappedRecordDao().findByCreator(config.getId(),
-                config.getUri());
+            config.getUri());
         logger.debug("[" + config.getId() + "]" + " @ [" + config.getUri() + "]");
         if (existedRecordList.size() > 0) {
-            // if the existed record contains the IGID, then we assume it's been saved in XchangeCore already
+            // if the existed record contains the IGID, then we assume it's been
+            // saved in XchangeCore already
             final Map<String, MappedRecord> inCoreSet = new HashMap<String, MappedRecord>();
             for (final MappedRecord r : existedRecordList) {
                 if (r.getIgID() != null) {
@@ -336,8 +328,10 @@ public class CSVFileParser {
             }
             logger.debug("records in Core: " + inCoreSet.size());
 
-            // if the in-core record is part of the new incident, we will perform an update of it
-            // if the in-core recrod is not part of the new incident, we will delete it from XchangeCore
+            // if the in-core record is part of the new incident, we will
+            // perform an update of it
+            // if the in-core recrod is not part of the new incident, we will
+            // delete it from XchangeCore
             final Set<String> inCoreKeySet = inCoreSet.keySet();
             for (final String key : inCoreKeySet) {
                 if (newRecords.containsKey(key)) {
@@ -348,7 +342,8 @@ public class CSVFileParser {
                         this.updateRecords.put(key, record);
                     }
                 } else {
-                    // logger.debug("IGID: " + key + " existed ... Auto.Close: " + (config.isAutoClose() ? "true" : "false"));
+                    // logger.debug("IGID: " + key + " existed ... Auto.Close: "
+                    // + (config.isAutoClose() ? "true" : "false"));
                     if (config.isAutoClose() == true) {
                         this.deleteRecords.put(key, inCoreSet.get(key));
                     }
@@ -363,7 +358,8 @@ public class CSVFileParser {
     }
 
     private void validateConfiguration(Configuration csvConfiguration,
-            MappingHeaderColumnNameTranslateMappingStrategy strategy, CSVReader csvReader) throws Throwable {
+                                       MappingHeaderColumnNameTranslateMappingStrategy strategy,
+                                       CSVReader csvReader) throws Throwable {
 
         strategy.captureHeader(csvReader);
 
@@ -378,7 +374,8 @@ public class CSVFileParser {
                         break;
                     }
                 }
-                // if the column is not specified in configuration file, it's valid
+                // if the column is not specified in configuration file, it's
+                // valid
                 if (!found) {
                     throw new Exception("Column: " + c + " is invalid column name");
                 }
@@ -391,7 +388,10 @@ public class CSVFileParser {
         for (int i = 0; i < indexHeaders.length; i++) {
             for (int j = 0; j < baseHeaders.length; j++) {
                 if (indexHeaders[i].equalsIgnoreCase(baseHeaders[j])) {
-                    return new int[] { i, j };
+                    return new int[] {
+                        i,
+                        j
+                    };
                 }
             }
         }

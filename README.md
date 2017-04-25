@@ -1,5 +1,9 @@
 Initial check-in for csv adapter.
 
+2017-04-24:
+- Modified the Configuration's toMap to report the Index column properly.
+- Added boyd and walmart config/data.
+
 2017-04-20:
 - Change the Configuration file autoClose default value to true for backward-compatible.
 

@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Configuration
-implements Serializable {
+    implements Serializable {
 
     /**
      *
@@ -208,9 +208,8 @@ implements Serializable {
 
     public boolean isValid() {
 
-        return this.title != null && this.index != null && this.category != null &&
-            this.description != null && this.filter != null && this.latitude != null &&
-            this.longitude != null ? true : false;
+        return this.title != null && this.index != null && this.category != null && this.description != null &&
+               this.filter != null && this.latitude != null && this.longitude != null ? true : false;
     }
 
     private void setAutoClose(String ac) {
@@ -365,6 +364,9 @@ implements Serializable {
         }
         if (this.getFilter().indexOf(".") == -1) {
             map.put(this.getFilter(), FN_FilterName);
+        }
+        if (this.getIndex().indexOf(".") == -1) {
+            map.put(this.getIndex(), FN_Index);
         }
         map.put(this.getLatitude(), FN_Latitude);
         map.put(this.getLongitude(), FN_Longitude);

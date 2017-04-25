@@ -11,9 +11,10 @@ import javax.persistence.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Deprecated
 @Entity
 public class CsvConfiguration
-implements Serializable {
+    implements Serializable {
 
     /**
      *
