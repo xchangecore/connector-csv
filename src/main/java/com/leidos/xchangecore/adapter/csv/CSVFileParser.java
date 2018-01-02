@@ -295,8 +295,8 @@ public class CSVFileParser {
         logger.debug("filtered records: " + newRecords.size());
         final Set<MappedRecord> distanceSet = new HashSet<MappedRecord>();
         if (config.getDistance().length() > 0 && newRecords.size() > 1) {
-            final Double[][] boundingBox = this.calculateBoundingBox(newRecords, Double.parseDouble(
-                config.getDistance()));
+            final Double[][] boundingBox = this.calculateBoundingBox(newRecords,
+                                                                     Double.parseDouble(config.getDistance()));
             final Collection<MappedRecord> newRecordSet = newRecords.values();
             for (final MappedRecord r : newRecordSet) {
                 if (r.getFilter().equalsIgnoreCase(config.getDistanceFilterText())) {
@@ -315,7 +315,7 @@ public class CSVFileParser {
         // get the existed records for this creator and the core, for example:
         // target and spotonresponse'core
         final List<MappedRecord> existedRecordList = getMappedRecordDao().findByCreator(config.getId(),
-            config.getUri());
+                                                                                        config.getUri());
         logger.debug("[" + config.getId() + "]" + " @ [" + config.getUri() + "]");
         if (existedRecordList.size() > 0) {
             // if the existed record contains the IGID, then we assume it's been
@@ -359,7 +359,8 @@ public class CSVFileParser {
 
     private void validateConfiguration(Configuration csvConfiguration,
                                        MappingHeaderColumnNameTranslateMappingStrategy strategy,
-                                       CSVReader csvReader) throws Throwable {
+                                       CSVReader csvReader)
+        throws Throwable {
 
         strategy.captureHeader(csvReader);
 
@@ -381,6 +382,18 @@ public class CSVFileParser {
                 }
             }
         }
+
+        if (csvConfiguration.isFullDescription()) {
+            StringBuffer sb = new StringBuffer();
+            for (final String columnName : strategy.getHeaders()) {
+                sb.append(columnName);
+                sb.append(".");
+            }
+            String columnNames = sb.toString();
+            columnNames = columnNames.substring(0, columnNames.length() - 1);
+            logger.debug("set full description: " + columnNames);
+            csvConfiguration.setDescription(columnNames);
+        }
     }
 
     private int[] whichColumn(String[] baseHeaders, String[] indexHeaders) {
@@ -388,10 +401,7 @@ public class CSVFileParser {
         for (int i = 0; i < indexHeaders.length; i++) {
             for (int j = 0; j < baseHeaders.length; j++) {
                 if (indexHeaders[i].equalsIgnoreCase(baseHeaders[j])) {
-                    return new int[] {
-                        i,
-                        j
-                    };
+                    return new int[] { i, j };
                 }
             }
         }

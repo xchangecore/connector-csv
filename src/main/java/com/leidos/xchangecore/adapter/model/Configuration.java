@@ -7,8 +7,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Configuration
-    implements Serializable {
+public class Configuration implements Serializable {
 
     /**
      *
@@ -33,6 +32,7 @@ public class Configuration
     public static final String FN_DistanceFilterText = "distance.filter.text";
     public static final String FN_Index = "index";
     public static final String FN_Description = "description";
+    public static final String FN_FullDescription = "full.description";
     public static final String FN_AutoClose = "auto.close";
     public static final String FN_URLHost = "url.host";
     public static final String FN_Username = "url.username";
@@ -40,15 +40,8 @@ public class Configuration
     public static final String FN_RedirectUrl = "url.redirectUrl";
     public static final String urlPostfix = "/core/ws/services";
 
-    public static final String[] DefinedColumnNames = new String[] {
-        FN_Title,
-        FN_Category,
-        FN_Latitude,
-        FN_Longitude,
-        FN_FilterName,
-        FN_Index,
-        FN_Description,
-    };
+    public static final String[] DefinedColumnNames = new String[] { FN_Title, FN_Category, FN_Latitude, FN_Longitude,
+            FN_FilterName, FN_Index, FN_Description, };
 
     private String id;
     private String title;
@@ -65,6 +58,7 @@ public class Configuration
     private String description = "title.category";
     private String index = "title.category.latitude.longitude";
     private boolean autoClose = true;
+    private boolean fullDescription = false;
     private String uri = "http://localhost";
     private String username = "xchangecore";
     private String password = "xchangecore";
@@ -174,6 +168,17 @@ public class Configuration
         return this.username;
     }
 
+    public boolean isFullDescription() {
+        return this.fullDescription;
+    }
+
+    public void setFullDescription(String fullDescription) {
+
+        if (fullDescription.toLowerCase().trim().equals("true")) {
+            this.fullDescription = true;
+        }
+    }
+
     public String getValue(String key) {
 
         if (key.equals(FN_Category)) {
@@ -208,8 +213,8 @@ public class Configuration
 
     public boolean isValid() {
 
-        return this.title != null && this.index != null && this.category != null && this.description != null &&
-               this.filter != null && this.latitude != null && this.longitude != null ? true : false;
+        return this.title != null && this.index != null && this.category != null && this.description != null
+                && this.filter != null && this.latitude != null && this.longitude != null ? true : false;
     }
 
     private void setAutoClose(String ac) {
@@ -234,6 +239,7 @@ public class Configuration
 
     public void setDescription(String description) {
 
+        logger.debug("setDescription: " + description);
         this.description = description;
     }
 
@@ -307,6 +313,8 @@ public class Configuration
             this.setDistanceFilterText(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_AutoClose)) {
             this.setAutoClose(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_FullDescription)) {
+            this.setFullDescription(keyAndValue[1]);
         } else {
             logger.warn("Invalid Key/Value: [" + keyAndValue[0] + "/" + keyAndValue[1] + "]");
         }
