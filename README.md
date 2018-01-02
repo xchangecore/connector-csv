@@ -1,5 +1,9 @@
 Initial check-in for csv adapter.
 
+2018-01-01:
+	- Added 'full.description' field to support the description including every columns in the csv file.
+	- Example entry: 'full.description, true' in config file.
+
 2017-04-24:
 - Modified the Configuration's toMap to report the Index column properly.
 - Added boyd and walmart config/data.
