@@ -63,8 +63,6 @@ public class CSVFileParser {
         strategy.setType(MappedRecord.class);
         strategy.setColumnMapping(configMap.toMap());
 
-        final MappingCsvToBean bean = new MappingCsvToBean(configMap);
-
         // merge files if necessary
         File csvFile = null;
         if (baseInputStream != null) {
@@ -73,13 +71,19 @@ public class CSVFileParser {
             csvFile = file;
         }
 
+        // verify the configuration first
         this.validateConfiguration(configMap, strategy, new XCCSVReader(new FileReader(csvFile)));
+        logger.debug("Configuration: " + configMap);
+
+        final MappingCsvToBean bean = new MappingCsvToBean(configMap);
+
         final List<MappedRecord> records = bean.parse(strategy, new XCCSVReader(new FileReader(csvFile)));
         final Date currentDate = new Date();
 
         for (final MappedRecord record : records) {
             // for the category, we will override with category.fixed if existed
             if (configMap.getCategoryFixed().length() > 0) {
+                logger.debug("Category Prefix: " + configMap.getCategoryFixed());
                 record.setCategory(configMap.getCategoryFixed());
             } else if (configMap.getCategoryPrefix().length() > 0) {
                 // Or, prefix the category if category.prefix existed
@@ -366,6 +370,22 @@ public class CSVFileParser {
 
         for (final String columnName : Configuration.DefinedColumnNames) {
             final String column = csvConfiguration.getValue(columnName);
+            if (columnName.equals(Configuration.FN_Description) && csvConfiguration.isFullDescription()) {
+                StringBuffer sb = new StringBuffer();
+                for (final String cName : strategy.getHeaders()) {
+                    sb.append(cName);
+                    sb.append(".");
+                }
+                String columnNames = sb.toString();
+                columnNames = columnNames.substring(0, columnNames.length() - 1);
+                logger.debug(Configuration.FN_Description + ": " + columnNames);
+                csvConfiguration.setDescription(columnNames);
+                continue;
+            }
+            if (column == null) {
+                throw new Exception("Attribute: " + columnName + " is required but not defined");
+            }
+            logger.debug(columnName + ": " + column);
             final String[] columns = column.split("\\.", -1);
             for (final String c : columns) {
                 boolean found = false;
@@ -381,18 +401,6 @@ public class CSVFileParser {
                     throw new Exception("Column: " + c + " is invalid column name");
                 }
             }
-        }
-
-        if (csvConfiguration.isFullDescription()) {
-            StringBuffer sb = new StringBuffer();
-            for (final String columnName : strategy.getHeaders()) {
-                sb.append(columnName);
-                sb.append(".");
-            }
-            String columnNames = sb.toString();
-            columnNames = columnNames.substring(0, columnNames.length() - 1);
-            logger.debug("set full description: " + columnNames);
-            csvConfiguration.setDescription(columnNames);
         }
     }
 

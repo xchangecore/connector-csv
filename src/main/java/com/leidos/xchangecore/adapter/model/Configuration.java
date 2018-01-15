@@ -381,4 +381,41 @@ public class Configuration implements Serializable {
 
         return map;
     }
+
+    public String toString() {
+
+        StringBuffer sb = new StringBuffer();
+
+        sb.append("\t");
+        sb.append(FN_Category);
+        sb.append(":\t");
+        sb.append(getCategory());
+        sb.append("\n");
+
+        sb.append("\t");
+        sb.append(FN_Title);
+        sb.append(":\t");
+        sb.append(getTitle());
+        sb.append("\n");
+
+        sb.append("\t");
+        sb.append(FN_FilterName);
+        sb.append(":\t");
+        sb.append(getFilter());
+        sb.append("\n");
+
+        sb.append("\t");
+        sb.append(FN_Index);
+        sb.append(":\t");
+        sb.append(getIndex());
+        sb.append("\n");
+
+        sb.append("\t");
+        sb.append(FN_Description);
+        sb.append(":\t");
+        sb.append(getDescription());
+        sb.append("\n");
+
+        return sb.toString();
+    }
 }

@@ -15,8 +15,7 @@ import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.bean.CsvToBean;
 import au.com.bytecode.opencsv.bean.MappingStrategy;
 
-public class MappingCsvToBean
-    extends CsvToBean<MappedRecord> {
+public class MappingCsvToBean extends CsvToBean<MappedRecord> {
 
     private static final Logger logger = LoggerFactory.getLogger(MappingCsvToBean.class);
 
@@ -37,14 +36,16 @@ public class MappingCsvToBean
         for (int i = 0; i < columns; i++) {
             columnNames[i] = configMap.getFieldValue(Configuration.DefinedColumnNames[i]).split("[.]", -1);
             columnIndexes[i] = new Integer[columnNames[i].length];
+            logger.debug("MappingCsvToBean: Column: [" + Configuration.DefinedColumnNames[i] + "], Value: [" +
+                         configMap.getFieldValue(Configuration.DefinedColumnNames[i]) + "]");
         }
         // indexes = configMap.getIndex().split("[.]", -1);
         // indexColumns = new Integer[indexes.length];
     }
 
     @Override
-    protected Object convertValue(String value, PropertyDescriptor prop) throws InstantiationException,
-        IllegalAccessException {
+    protected Object convertValue(String value, PropertyDescriptor prop)
+        throws InstantiationException, IllegalAccessException {
 
         final PropertyEditor editor = getPropertyEditor(prop);
         Object obj = value;
@@ -114,8 +115,14 @@ public class MappingCsvToBean
             String[] columns;
             final List<MappedRecord> list = new ArrayList<MappedRecord>();
             while (null != (columns = csvReader.readNext())) {
+                logger.debug("++++++++");
+                for (String col : columns) {
+                    logger.debug("[" + col + "]");
+                }
+                logger.debug("++++++++");
                 final MappedRecord bean = processLine(mapper, columns);
                 postProcessing(bean, columns);
+                logger.debug("Row: " + bean);
                 list.add(bean);
             }
             return list;
@@ -153,8 +160,7 @@ public class MappingCsvToBean
             if (columnNames[i].length == 1) {
                 continue;
             }
-            final boolean isDescription = Configuration.DefinedColumnNames[i].equalsIgnoreCase(
-                Configuration.FN_Description);
+            final boolean isDescription = Configuration.DefinedColumnNames[i].equalsIgnoreCase(Configuration.FN_Description);
             sb = new StringBuffer();
             for (int j = 0; j < columnNames[i].length; j++) {
                 if (isDescription) {

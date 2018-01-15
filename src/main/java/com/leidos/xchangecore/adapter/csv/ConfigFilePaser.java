@@ -58,8 +58,7 @@ public class ConfigFilePaser {
                 if (line.equalsIgnoreCase(Configuration.N_Configuration_Start)) {
                     startCount++;
                     continue;
-                }
-                else if (line.equalsIgnoreCase(Configuration.N_Configuration_End)) {
+                } else if (line.equalsIgnoreCase(Configuration.N_Configuration_End)) {
                     endCount++;
                     continue;
                 }
@@ -88,10 +87,12 @@ public class ConfigFilePaser {
                     continue;
                 }
                 if (line.equalsIgnoreCase(Configuration.N_Configuration_Start)) {
+                    logger.debug("Configuration: .. start ...");
                     configuration = new Configuration();
                     configuration.setId(creator);
-                }
-                else if (line.equalsIgnoreCase(Configuration.N_Configuration_End)) {
+                    continue;
+                } else if (line.equalsIgnoreCase(Configuration.N_Configuration_End)) {
+                    logger.debug("Configuration: .. end ...");
                     if (configuration.isValid()) {
                         getCoreConfigurationDao().makePersistent(new CoreConfiguration(configuration.getUri(),
                                                                                        configuration.getUsername(),
@@ -99,8 +100,7 @@ public class ConfigFilePaser {
                         configurationList.add(configuration);
                         configuration = null;
                         continue;
-                    }
-                    else {
+                    } else {
                         throw new Exception("Parsing: " + configFilename + ": Invalid format ...");
                     }
                 }
@@ -109,7 +109,7 @@ public class ConfigFilePaser {
                 }
                 final String[] tokens = line.split(",", -1);
                 if (tokens.length != 2) {
-                    logger.error("Invalide formated Line: [" + line + "]");
+                    logger.error("Invalid formated Line: [" + line + "]");
                     continue;
                 }
                 tokens[0] = tokens[0].trim().toLowerCase();
