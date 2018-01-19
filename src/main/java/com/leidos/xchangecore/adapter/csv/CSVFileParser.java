@@ -73,7 +73,7 @@ public class CSVFileParser {
 
         // verify the configuration first
         this.validateConfiguration(configMap, strategy, new XCCSVReader(new FileReader(csvFile)));
-        logger.debug("Configuration: " + configMap);
+        logger.debug("Configuration:\n" + configMap);
 
         final MappingCsvToBean bean = new MappingCsvToBean(configMap);
 
@@ -83,7 +83,6 @@ public class CSVFileParser {
         for (final MappedRecord record : records) {
             // for the category, we will override with category.fixed if existed
             if (configMap.getCategoryFixed().length() > 0) {
-                logger.debug("Category Prefix: " + configMap.getCategoryFixed());
                 record.setCategory(configMap.getCategoryFixed());
             } else if (configMap.getCategoryPrefix().length() > 0) {
                 // Or, prefix the category if category.prefix existed
@@ -95,7 +94,7 @@ public class CSVFileParser {
             record.setCreator(configMap.getId());
             record.setLastUpdated(currentDate);
             record.setCoreUri(configMap.getUri());
-            // logger.debug("record: " + record.toString());
+            logger.debug("record: " + record.toString());
         }
 
         parseRecords(records, configMap);
@@ -368,19 +367,34 @@ public class CSVFileParser {
 
         strategy.captureHeader(csvReader);
 
+        Set<String> nameSet = new HashSet<String>();
+        // first of all the attribute cannot have duplicate column
+        for (final String columnName : Configuration.DefinedColumnNames) {
+            String attributeName = csvConfiguration.getValue(columnName);
+            if (nameSet.contains(attributeName)) {
+                throw new Exception("Attribute: [" + columnName + "] use Column: [" + attributeName + "] : duplicate");
+            }
+            nameSet.add(attributeName);
+        }
+        // clean up the name set
+        nameSet.clear();
+
         for (final String columnName : Configuration.DefinedColumnNames) {
             final String column = csvConfiguration.getValue(columnName);
-            if (columnName.equals(Configuration.FN_Description) && csvConfiguration.isFullDescription()) {
-                StringBuffer sb = new StringBuffer();
-                for (final String cName : strategy.getHeaders()) {
-                    sb.append(cName);
-                    sb.append(".");
+            // if the attribute is Description
+            if (columnName.equals(Configuration.FN_Description)) {
+                // if the full.description is set then collect all the fields to build the description
+                if (csvConfiguration.isFullDescription()) {
+                    StringBuffer sb = new StringBuffer();
+                    for (final String cName : strategy.getHeaders()) {
+                        sb.append(cName);
+                        sb.append(".");
+                    }
+                    String columnNames = sb.toString();
+                    columnNames = columnNames.substring(0, columnNames.length() - 1);
+                    csvConfiguration.setDescription(columnNames);
+                    continue;
                 }
-                String columnNames = sb.toString();
-                columnNames = columnNames.substring(0, columnNames.length() - 1);
-                logger.debug(Configuration.FN_Description + ": " + columnNames);
-                csvConfiguration.setDescription(columnNames);
-                continue;
             }
             if (column == null) {
                 throw new Exception("Attribute: " + columnName + " is required but not defined");
