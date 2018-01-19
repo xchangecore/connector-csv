@@ -1,5 +1,9 @@
 Initial check-in for csv adapter.
 
+2018-01-18:	commit: bd1bdfcea7ca7397cedce2c8cb26e822225779ef
+	- Make sure the description field not needed as long as the full.description is set to true.
+	- Throw exception when there are more than one field has same column defined.
+
 2018-01-01:
 	- Added 'full.description' field to support the description including every columns in the csv file.
 	- Example entry: 'full.description, true' in config file.
