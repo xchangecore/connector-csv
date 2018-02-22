@@ -6,3 +6,7 @@ maven-eclipse.xml
 target/
 Logs/
 data/
+.idea/
+Adapter.iml
+src/main/webapp/config/
+src/test/resources/config/

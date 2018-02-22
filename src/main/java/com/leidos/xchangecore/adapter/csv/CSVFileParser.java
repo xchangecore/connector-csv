@@ -1,28 +1,15 @@
 package com.leidos.xchangecore.adapter.csv;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import au.com.bytecode.opencsv.CSVReader;
 import com.leidos.xchangecore.adapter.dao.MappedRecordDao;
 import com.leidos.xchangecore.adapter.model.Configuration;
 import com.leidos.xchangecore.adapter.model.MappedRecord;
 import com.leidos.xchangecore.adapter.util.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import au.com.bytecode.opencsv.CSVReader;
+import java.io.*;
+import java.util.*;
 
 public class CSVFileParser {
 
@@ -35,33 +22,27 @@ public class CSVFileParser {
 
     private static String PatternPrefix = "(?i:.*";
     private static String PatternPostfix = ".*)";
-
-    public static MappedRecordDao getMappedRecordDao() {
-
-        return mappedRecordDao;
-    }
-
-    public static void setMappedRecordDao(MappedRecordDao mappedRecordDao) {
-
-        CSVFileParser.mappedRecordDao = mappedRecordDao;
-    }
-
     private final Map<String, MappedRecord> newRecords = new HashMap<String, MappedRecord>();
     private final Map<String, MappedRecord> updateRecords = new HashMap<String, MappedRecord>();
     private final Map<String, MappedRecord> deleteRecords = new HashMap<String, MappedRecord>();
+    private String errorList = "";
 
     public CSVFileParser() {
 
         super();
     }
 
-    public CSVFileParser(File file, InputStream baseInputStream, Configuration configMap) throws Throwable {
+    /*
+     * This method will read in the csv file and concatenate the base file if existed
+     * Then pass it with the configuration map
+     */
+    public CSVFileParser(File file, InputStream baseInputStream, Configuration configuration) throws Throwable {
 
         super();
 
         final MappingHeaderColumnNameTranslateMappingStrategy strategy = new MappingHeaderColumnNameTranslateMappingStrategy();
         strategy.setType(MappedRecord.class);
-        strategy.setColumnMapping(configMap.toMap());
+        strategy.setColumnMapping(configuration.toMap());
 
         // merge files if necessary
         File csvFile = null;
@@ -72,36 +53,67 @@ public class CSVFileParser {
         }
 
         // verify the configuration first
-        this.validateConfiguration(configMap, strategy, new XCCSVReader(new FileReader(csvFile)));
-        logger.debug("Configuration:\n" + configMap);
+        this.validateConfiguration(configuration, strategy, new XCCSVReader(new FileReader(csvFile)));
+        // logger.debug("Configuration:\n" + configMap);
 
-        final MappingCsvToBean bean = new MappingCsvToBean(configMap);
+        final MappingCsvToBean bean = new MappingCsvToBean(configuration);
 
-        final List<MappedRecord> records = bean.parse(strategy, new XCCSVReader(new FileReader(csvFile)));
+        final List<MappedRecord> parsedRecords = bean.parse(strategy, new XCCSVReader(new FileReader(csvFile)));
         final Date currentDate = new Date();
 
-        for (final MappedRecord record : records) {
+        Set<String> indexSet = new HashSet<String>();
+        List<MappedRecord> records = new ArrayList<MappedRecord>();
+        for (final MappedRecord record : parsedRecords) {
+            if (indexSet.contains(record.getIndex())) {
+                errorList += new String(
+                    "Duplicate Index: " + record.getIndex() + ", Context: " + record.getContent() + "\n");
+                continue;
+            }
+
+            indexSet.add(record.getIndex());
+
+            if (configuration.getCategoryPrefix() != null && configuration.getCategoryPrefix().length() > 0) {
+                record.setCategory(configuration.getCategoryPrefix() + record.getCategory());
+            }
             // for the category, we will override with category.fixed if existed
-            if (configMap.getCategoryFixed().length() > 0) {
-                record.setCategory(configMap.getCategoryFixed());
-            } else if (configMap.getCategoryPrefix().length() > 0) {
-                // Or, prefix the category if category.prefix existed
-                record.setCategory(configMap.getCategoryPrefix() + record.getCategory());
+            if (configuration.getCategoryFixed() != null && configuration.getCategoryFixed().length() > 0) {
+                record.setCategory(configuration.getCategoryFixed());
             }
-            if (configMap.getTitlePrefix() != null && configMap.getTitlePrefix().length() > 0) {
-                record.setTitle(configMap.getTitlePrefix() + record.getTitle());
+            if (configuration.getTitlePrefix() != null && configuration.getTitlePrefix() != null && configuration.getTitlePrefix()
+                .length() > 0) {
+                record.setTitle(configuration.getTitlePrefix() + record.getTitle());
             }
-            record.setCreator(configMap.getId());
+            record.setCreator(configuration.getId());
             record.setLastUpdated(currentDate);
-            record.setCoreUri(configMap.getUri());
+            record.setCoreUri(configuration.getUri());
             logger.debug("record: " + record.toString());
+            records.add(record);
         }
 
-        parseRecords(records, configMap);
+        if (indexSet.isEmpty() == false) {
+            indexSet.clear();
+        }
+
+        parseRecords(records, configuration);
 
         if (baseInputStream != null) {
             csvFile.delete();
         }
+    }
+
+    public String getErrorList() {
+
+        return this.errorList;
+    }
+
+    public static MappedRecordDao getMappedRecordDao() {
+
+        return mappedRecordDao;
+    }
+
+    public static void setMappedRecordDao(MappedRecordDao mappedRecordDao) {
+
+        CSVFileParser.mappedRecordDao = mappedRecordDao;
     }
 
     private Double[][] calculateBoundingBox(Map<String, MappedRecord> filterRecordSet, double distance) {
@@ -217,13 +229,13 @@ public class CSVFileParser {
             String[] headers = baseReader.readNext();
             final String[] baseHeaders = new String[headers.length];
             for (int i = 0; i < headers.length; i++) {
-                baseHeaders[i] = headers[i].trim();
+                baseHeaders[i] = headers[i].trim().toLowerCase();
             }
             indexedReader = new CSVReader(new FileReader(f));
             headers = indexedReader.readNext();
             final String[] indexHeaders = new String[headers.length];
             for (int i = 0; i < headers.length; i++) {
-                indexHeaders[i] = headers[i].trim();
+                indexHeaders[i] = headers[i].trim().toLowerCase();
             }
 
             final int[] columnNumbers = this.whichColumn(baseHeaders, indexHeaders);
@@ -246,7 +258,7 @@ public class CSVFileParser {
                 final String key = columns[columnNumbers[1]];
                 if (indexMap.containsKey(key)) {
                     // write the merged line
-                    logger.debug("index file contain [" + key + "]");
+                    // logger.debug("index file contain [" + key + "]");
                     writer.write(this.getCombinedLine(indexMap.get(key), columns, columnNumbers[1]));
                 }
             }
@@ -254,10 +266,12 @@ public class CSVFileParser {
             writer.flush();
             writer.close();
             return temp;
-        } catch (final Throwable e) {
+        }
+        catch (final Throwable e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } finally {
+        }
+        finally {
             try {
                 if (baseReader != null) {
                     baseReader.close();
@@ -265,7 +279,8 @@ public class CSVFileParser {
                 if (indexedReader != null) {
                     indexedReader.close();
                 }
-            } catch (final Throwable e) {
+            }
+            catch (final Throwable e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -360,27 +375,12 @@ public class CSVFileParser {
         logger.debug("records need to be deleted: " + this.deleteRecords.size());
     }
 
-    private void validateConfiguration(Configuration csvConfiguration,
-                                       MappingHeaderColumnNameTranslateMappingStrategy strategy,
-                                       CSVReader csvReader)
-        throws Throwable {
+    private void validateConfiguration(Configuration csvConfiguration, MappingHeaderColumnNameTranslateMappingStrategy strategy, CSVReader csvReader) throws Throwable {
 
         strategy.captureHeader(csvReader);
 
-        Set<String> nameSet = new HashSet<String>();
-        // first of all the attribute cannot have duplicate column
         for (final String columnName : Configuration.DefinedColumnNames) {
-            String attributeName = csvConfiguration.getValue(columnName);
-            if (nameSet.contains(attributeName)) {
-                throw new Exception("Attribute: [" + columnName + "] use Column: [" + attributeName + "] : duplicate");
-            }
-            nameSet.add(attributeName);
-        }
-        // clean up the name set
-        nameSet.clear();
-
-        for (final String columnName : Configuration.DefinedColumnNames) {
-            final String column = csvConfiguration.getValue(columnName);
+            final String column = csvConfiguration.getFieldValue(columnName);
             // if the attribute is Description
             if (columnName.equals(Configuration.FN_Description)) {
                 // if the full.description is set then collect all the fields to build the description
@@ -396,10 +396,12 @@ public class CSVFileParser {
                     continue;
                 }
             }
+
             if (column == null) {
-                throw new Exception("Attribute: " + columnName + " is required but not defined");
+                logger.warn("Undefined Attribute: " + columnName + " N/A might be used");
+                continue;
             }
-            logger.debug(columnName + ": " + column);
+            // logger.debug(columnName + ": " + column);
             final String[] columns = column.split("\\.", -1);
             for (final String c : columns) {
                 boolean found = false;
@@ -412,7 +414,7 @@ public class CSVFileParser {
                 // if the column is not specified in configuration file, it's
                 // valid
                 if (!found) {
-                    throw new Exception("Column: " + c + " is invalid column name");
+                    throw new Exception("Attribute: " + column + ", header doesn't contain [" + c + "]");
                 }
             }
         }
@@ -423,7 +425,10 @@ public class CSVFileParser {
         for (int i = 0; i < indexHeaders.length; i++) {
             for (int j = 0; j < baseHeaders.length; j++) {
                 if (indexHeaders[i].equalsIgnoreCase(baseHeaders[j])) {
-                    return new int[] { i, j };
+                    return new int[]{
+                        i,
+                        j
+                    };
                 }
             }
         }

@@ -1,78 +1,51 @@
 package com.leidos.xchangecore.adapter.csv;
 
+import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.bean.CsvToBean;
+import au.com.bytecode.opencsv.bean.MappingStrategy;
+import com.leidos.xchangecore.adapter.model.Configuration;
+import com.leidos.xchangecore.adapter.model.MappedRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.beans.PropertyDescriptor;
 import java.beans.PropertyEditor;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.leidos.xchangecore.adapter.model.Configuration;
-import com.leidos.xchangecore.adapter.model.MappedRecord;
-
-import au.com.bytecode.opencsv.CSVReader;
-import au.com.bytecode.opencsv.bean.CsvToBean;
-import au.com.bytecode.opencsv.bean.MappingStrategy;
 
 public class MappingCsvToBean extends CsvToBean<MappedRecord> {
 
     private static final Logger logger = LoggerFactory.getLogger(MappingCsvToBean.class);
 
     private static final String TokenSeparator = ":";
-
-    // private final String[] indexes;
-    // private final Integer[] indexColumns;
     private final String[][] columnNames;
     private final Integer[][] columnIndexes;
+    private Configuration configuration = null;
     private boolean autoClose = false;
 
     public MappingCsvToBean(Configuration configMap) {
 
+        configuration = configMap;
         setAutoClose(configMap.isAutoClose());
         final int columns = Configuration.DefinedColumnNames.length;
         columnNames = new String[columns][];
         columnIndexes = new Integer[columns][];
         for (int i = 0; i < columns; i++) {
-            columnNames[i] = configMap.getFieldValue(Configuration.DefinedColumnNames[i]).split("[.]", -1);
+            // if the attribute is not defined the skip
+            if (configMap.getFieldValue(Configuration.DefinedColumnNames[i]) == null) {
+                continue;
+            }
+            columnNames[i] = configMap.getFieldValue(Configuration.DefinedColumnNames[i])
+                .split("[.]", -1);
             columnIndexes[i] = new Integer[columnNames[i].length];
         }
-        // indexes = configMap.getIndex().split("[.]", -1);
-        // indexColumns = new Integer[indexes.length];
-    }
-
-    @Override
-    protected Object convertValue(String value, PropertyDescriptor prop)
-        throws InstantiationException, IllegalAccessException {
-
-        final PropertyEditor editor = getPropertyEditor(prop);
-        Object obj = value;
-        if (null != editor) {
-            try {
-                editor.setAsText(value);
-            } catch (final NumberFormatException e) {
-                logger.warn("Value: [" + value + "]: " + e.getMessage());
-                editor.setAsText("0");
-            }
-            obj = editor.getValue();
-        }
-        return obj;
     }
 
     // figure out the index key in column order
     private void figureOutMultiColumnField(String[] headers) {
 
-        /*
-        for (int i = 0; i < indexes.length; i++) {
-            for (int j = 0; j < headers.length; j++) {
-                if (indexes[i].equalsIgnoreCase(headers[j])) {
-                    indexColumns[i] = j;
-                }
-            }
-        }
-         */
         for (int i = 0; i < columnNames.length; i++) {
-            if (columnNames[i].length == 1) {
+            if (columnNames[i] == null || columnNames[i].length == 1) {
                 continue;
             }
             for (int j = 0; j < columnNames[i].length; j++) {
@@ -86,20 +59,14 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
         }
     }
 
-    private int findDuplicateName(int index) {
-
-        int i = 0;
-        for (; i < Configuration.DefinedColumnNames.length; i++) {
-            if (i != index && columnNames[i].length == 1 && columnNames[i][0].equalsIgnoreCase(columnNames[index][0])) {
-                break;
-            }
-        }
-        return i;
-    }
-
     public boolean isAutoClose() {
 
         return autoClose;
+    }
+
+    private void setAutoClose(boolean autoClose) {
+
+        this.autoClose = autoClose;
     }
 
     @Override
@@ -118,15 +85,69 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
                 list.add(bean);
             }
             return list;
-        } catch (final Exception e) {
-            throw new RuntimeException("Error parsing CSV!", e);
+        }
+        catch (final Exception e) {
+            throw new RuntimeException("Error parsing CSV!" + e.getMessage());
+        }
+    }
+
+    @Override
+    protected Object convertValue(String value, PropertyDescriptor prop)
+        throws InstantiationException, IllegalAccessException {
+
+        final PropertyEditor editor = getPropertyEditor(prop);
+        Object obj = value;
+        if (null != editor) {
+            try {
+                editor.setAsText(value);
+            }
+            catch (final NumberFormatException e) {
+                logger.warn("Value: [" + value + "]: " + e.getMessage());
+                editor.setAsText("0");
+            }
+            obj = editor.getValue();
+        }
+        return obj;
+    }
+
+    private String getRecordValue(MappedRecord record, Configuration configuration,
+                                  String attributeName, String[] columnValues, Integer columnIndex) {
+
+        if (attributeName.equals(configuration.getDescription())) {
+            return record.getDescription();
+        } else if (attributeName.equals(configuration.getCategory())) {
+            return record.getCategory();
+        } else if (attributeName.equals(configuration.getTitle())) {
+            return record.getTitle();
+        } else if (attributeName.equals(configuration.getFilter())) {
+            return record.getFilter();
+        } else {
+            return columnValues[columnIndex];
         }
     }
 
     // figure out the multi-column fields: index, description
     private void postProcessing(MappedRecord record, String[] columns) {
 
-        // figure out the content
+        // fill the empty fields
+        if (record.getCategory().equals("N/A")) {
+            record.setCategory(
+                getAttributeValue(record, this.configuration.getDuplicateAttributeValue(Configuration.FN_Category)));
+        }
+        if (record.getFilter().equals("N/A")) {
+            record.setFilter(
+                getAttributeValue(record, this.configuration.getDuplicateAttributeValue(Configuration.FN_FilterName)));
+        }
+        if (record.getIndex().equals("N/A")) {
+            record.setIndex(
+                getAttributeValue(record, this.configuration.getDuplicateAttributeValue(Configuration.FN_Index)));
+        }
+        if (record.getDescription().equals("N/A")) {
+            record.setDescription(
+                getAttributeValue(record, this.configuration.getDuplicateAttributeValue(Configuration.FN_Description)));
+        }
+
+        // figure out the content which is the whole row of data
         StringBuffer sb = new StringBuffer();
         sb.append("[");
         for (final String column : columns) {
@@ -136,23 +157,13 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
         value = value.substring(0, value.lastIndexOf(TokenSeparator));
         record.setContent(value + "]");
 
-        // figuer out the index key
-        /*
-        sb = new StringBuffer();
-        for (int i = 0; i < indexes.length; i++) {
-            sb.append(columns[indexColumns[i]] + TokenSeparator);
-        }
-        value = sb.toString();
-        value = value.substring(0, value.lastIndexOf(TokenSeparator));
-        record.setIndex(value);
-         */
-
         // figure out the value for the multi-column field
         for (int i = 0; i < columnNames.length; i++) {
-            if (columnNames[i].length == 1) {
+            if (columnNames[i] == null || columnNames[i].length == 1) {
                 continue;
             }
-            final boolean isDescription = Configuration.DefinedColumnNames[i].equalsIgnoreCase(Configuration.FN_Description);
+            final boolean isDescription = Configuration.DefinedColumnNames[i].equalsIgnoreCase(
+                Configuration.FN_Description);
             sb = new StringBuffer();
             for (int j = 0; j < columnNames[i].length; j++) {
                 if (isDescription) {
@@ -160,9 +171,15 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
                     sb.append("<b>");
                     sb.append(columnNames[i][j] + ": ");
                     sb.append("</b>");
-                    sb.append(columns[columnIndexes[i][j]]);
+                    sb.append(getRecordValue(record, configuration, columnNames[i][j], columns, columnIndexes[i][j]));
                 } else {
-                    sb.append(columns[columnIndexes[i][j]] + TokenSeparator);
+                    if (columnNames[i][j] == null) {
+                        sb.append("N/A");
+                    } else {
+                        sb.append(
+                            getRecordValue(record, configuration, columnNames[i][j], columns, columnIndexes[i][j]));
+                    }
+                    sb.append(TokenSeparator);
                 }
             }
             value = sb.toString();
@@ -182,29 +199,23 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
                 record.setIndex(value);
             }
         }
-
-        if (record.getCategory().equals("N/A")) {
-            final int i = findDuplicateName(1);
-            if (i != Configuration.DefinedColumnNames.length) {
-                switch (i) {
-                case 0:
-                    record.setCategory(record.getCategory());
-                    break;
-                case 4:
-                    record.setCategory(record.getFilter());
-                    break;
-                case 5:
-                    record.setCategory(record.getDescription());
-                    break;
-                default:
-                    logger.warn("Cannot map " + Configuration.DefinedColumnNames[i] + "'s value into category");
-                }
-            }
-        }
+        // logger.debug("+++++++++++++++++++\npostProcessing:\n" + record + "\n+++++++++++++++++++++++++++++");
     }
 
-    private void setAutoClose(boolean autoClose) {
+    private String getAttributeValue(MappedRecord record, String attributeName) {
 
-        this.autoClose = autoClose;
+        if (attributeName == null) {
+            return "N/A";
+        } else if (attributeName.equals(Configuration.FN_Title)) {
+            return record.getTitle();
+        } else if (attributeName.equals(Configuration.FN_Index)) {
+            return record.getIndex();
+        } else if (attributeName.equals(Configuration.FN_Category)) {
+            return record.getCategory();
+        } else if (attributeName.equals(Configuration.FN_Description)) {
+            return record.getDescription();
+        } else {
+            return "N/A";
+        }
     }
 }

@@ -1,10 +1,11 @@
 package com.leidos.xchangecore.adapter.ui;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
+import com.leidos.xchangecore.adapter.XchangeCoreAdapter;
+import com.leidos.xchangecore.adapter.csv.CSVFileParser;
+import com.leidos.xchangecore.adapter.csv.ConfigFilePaser;
+import com.leidos.xchangecore.adapter.model.Configuration;
+import com.leidos.xchangecore.adapter.model.MappedRecord;
+import com.leidos.xchangecore.adapter.webclient.WebServiceClient;
 import org.apache.wicket.Application;
 import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,30 +29,27 @@ import org.apache.wicket.util.resource.ResourceStreamNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.leidos.xchangecore.adapter.XchangeCoreAdapter;
-import com.leidos.xchangecore.adapter.csv.CSVFileParser;
-import com.leidos.xchangecore.adapter.csv.ConfigFilePaser;
-import com.leidos.xchangecore.adapter.model.Configuration;
-import com.leidos.xchangecore.adapter.model.MappedRecord;
-import com.leidos.xchangecore.adapter.webclient.WebServiceClient;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class UploadPage
-extends WebPage {
+    extends WebPage {
 
     /**
      * Form for uploads.
      */
     private class FileUploadForm
-    extends Form<Void> {
+        extends Form<Void> {
 
         FileUploadField fileUploadField;
 
         /**
          * Construct.
          *
-         * @param name
-         *            Component name
+         * @param name Component name
          */
         public FileUploadForm(String name) {
 
@@ -74,12 +72,16 @@ extends WebPage {
         protected void onSubmit() {
 
             final List<FileUpload> uploads = fileUploadField.getFileUploads();
+
+            String errorMessage = null;
+
             if (uploads != null) {
 
                 try {
                     getUploadFolder().ensureExists();
-                } catch (final IOException ioe) {
-                    final String errorMessage = "Upload Folder not existed and creation failed: " + ioe.getMessage();
+                }
+                catch (final IOException ioe) {
+                    errorMessage = "Upload Folder not existed and creation failed: " + ioe.getMessage();
                     logger.error(errorMessage);
                     UploadPage.this.error(errorMessage);
                     return;
@@ -87,7 +89,7 @@ extends WebPage {
 
                 final boolean isRemoved = getUploadFolder().removeFiles();
                 logger.debug("Removed all the files under xchangecore-uploads: " +
-                    (isRemoved ? " success" : " failure"));
+                                 (isRemoved ? " success" : " failure"));
 
                 for (final FileUpload upload : uploads) {
                     // Create a new file
@@ -99,15 +101,16 @@ extends WebPage {
                     try {
                         newFile.createNewFile();
                         upload.writeTo(newFile);
-                    } catch (final Exception e) {
+                    }
+                    catch (final Exception e) {
                         throw new IllegalStateException("Unable to write file", e);
                     }
 
                     try {
                         for (final Configuration configuration : configurationList) {
                             final CSVFileParser csvFileParser = new CSVFileParser(newFile,
-                                getFileStream(baseFilename),
-                                configuration);
+                                                                                  getFileStream(baseFilename),
+                                                                                  configuration);
 
                             redirectUrl = configuration.getRedirectUrl();
                             final WebServiceClient wsClient = new WebServiceClient(configuration.getUri(),
@@ -155,13 +158,24 @@ extends WebPage {
                             }
 
                             logger.debug("number of creation/update/deletion: " + numOfCreation + "/" + numOfUpdate +
-                                "/" + numOfDeletion);
+                                             "/" + numOfDeletion);
+
+                            if (csvFileParser.getErrorList().length() > 0) {
+                                errorMessage = csvFileParser.getErrorList();
+                            }
                         }
                         info("Upload is done ...");
                         Files.remove(newFile);
-                    } catch (final Throwable e) {
+                        if (errorMessage.length() > 0) {
+                            throw new Exception(errorMessage);
+                        }
+                    }
+                    catch (final Throwable e) {
                         logger.error("Exception: " + e.getMessage());
-                        UploadPage.this.error("Exception: " + e.getMessage());
+                        String[] errors = e.getMessage().split("\n", -1);
+                        for (String eMsg : errors) {
+                            if (eMsg.length() > 0) { UploadPage.this.error("Exception: " + eMsg); }
+                        }
                     }
                 }
             }
@@ -190,8 +204,7 @@ extends WebPage {
     /**
      * Constructor.
      *
-     * @param parameters
-     *            Page parameters
+     * @param parameters Page parameters
      */
     public UploadPage(final PageParameters parameters) {
 
@@ -263,8 +276,9 @@ extends WebPage {
         }
         try {
             configurationList = new ConfigFilePaser(configFilename,
-                getFileStream(configFilename)).listOfConfiguration();
-        } catch (final Exception e) {
+                                                    getFileStream(configFilename)).listOfConfiguration();
+        }
+        catch (final Exception e) {
             error(e.getMessage());
         }
     }
@@ -277,7 +291,8 @@ extends WebPage {
             if (resource != null && resource instanceof UrlResourceStream) {
                 try {
                     return ((UrlResourceStream) resource).getInputStream();
-                } catch (final ResourceStreamNotFoundException e) {
+                }
+                catch (final ResourceStreamNotFoundException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                     return null;
@@ -290,9 +305,10 @@ extends WebPage {
 
     // private ConfigFilePaser configFileParser = null;
 
-    /** Reference to listview for easy access. */
+    /**
+     * Reference to listview for easy access.
+     */
     // private final FileListView fileListView = null;
-
     public String getMessage() {
 
         return message;

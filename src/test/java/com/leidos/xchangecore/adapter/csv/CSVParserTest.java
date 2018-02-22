@@ -1,19 +1,15 @@
 package com.leidos.xchangecore.adapter.csv;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.List;
-
+import com.leidos.xchangecore.adapter.model.MappedRecord;
+import com.leidos.xchangecore.adapter.util.Util;
+import gov.niem.niem.niemCore.x20.IncidentType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.leidos.xchangecore.adapter.model.Configuration;
-import com.leidos.xchangecore.adapter.model.MappedRecord;
-import com.leidos.xchangecore.adapter.util.Util;
-
-import gov.niem.niem.niemCore.x20.IncidentType;
+import java.io.File;
+import java.io.FileInputStream;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {
@@ -21,150 +17,125 @@ import gov.niem.niem.niemCore.x20.IncidentType;
 })
 public class CSVParserTest {
 
-    private void testBoyd() throws Throwable {
+    private void processingCSV(final String configFilename, final String cvsFilename, final String baseFilename) {
 
-        final String path = "src/main/webapp/config/boyd.config";
-        final FileInputStream fis = new FileInputStream(new File(path));
-        final File csvFile = new File("src/test/resources/boyd.csv");
-        final ConfigFilePaser configFileParser = new ConfigFilePaser("boyd.config", fis);
-        final CSVFileParser csvFileParser = new CSVFileParser(csvFile,
-            null,
-            configFileParser.getConfigMap());
-        final MappedRecord[] records = csvFileParser.getNewRecords();
-        for (final MappedRecord record : records) {
-            final IncidentType incident = Util.getIncidentDocument(record);
-            System.out.println("Record: " + incident);
-        }
-    }
+        System.err.println("\n>>>>>>>>>>\n\tConfiguration:\t" + configFilename + "\n\tCSV File:\t\t" + cvsFilename +
+                               "\n<<<<<<<<<<");
+        try {
+            // create the csv data file
+            final File csvFile = new File(cvsFilename);
 
-    private void testWalmart() throws Throwable {
+            // create the configuration file input stream
+            final FileInputStream fis = new FileInputStream(new File(configFilename));
 
-        final String path = "src/main/webapp/config/walmart.config";
-        final FileInputStream fis = new FileInputStream(new File(path));
-        final File csvFile = new File("src/test/resources/walmart.csv");
-        final ConfigFilePaser configFileParser = new ConfigFilePaser("walmart.config", fis);
-        final CSVFileParser csvFileParser = new CSVFileParser(csvFile,
-            null,
-            configFileParser.getConfigMap());
-        final MappedRecord[] records = csvFileParser.getNewRecords();
-        for (final MappedRecord record : records) {
-            final IncidentType incident = Util.getIncidentDocument(record);
-            System.out.println("Record: " + incident);
-        }
-    }
+            // create the base file inputstream if the baseFilename is not null
+            final FileInputStream baseIS = (baseFilename == null) ? null : new FileInputStream(new File(baseFilename));
 
-    private void testCostco() throws Throwable {
+            // create the configuration parser
+            final ConfigFilePaser configFileParser = new ConfigFilePaser(configFilename, fis);
 
-        final String path = "src/main/webapp/config/costco.config";
-        final FileInputStream fis = new FileInputStream(new File(path));
-        final File csvFile = new File("src/test/resources/costco.csv");
-        final ConfigFilePaser configFileParser = new ConfigFilePaser("costco.config", fis);
-        final List<Configuration> configurationList = configFileParser.listOfConfiguration();
-        for (final Configuration configuration : configurationList) {
-            final CSVFileParser csvFileParser = new CSVFileParser(csvFile, null, configuration);
+            // create the csv file parser
+            final CSVFileParser csvFileParser = new CSVFileParser(csvFile, baseIS, configFileParser.getConfigMap());
+
+            // retrieve the records from the parsed file
             MappedRecord[] records = csvFileParser.getNewRecords();
             if (records != null) {
                 for (final MappedRecord record : records) {
+                    System.out.println("NEW: " + record);
                     final IncidentType incident = Util.getIncidentDocument(record);
-                    System.out.println("New Record: " + incident);
                 }
             }
             records = csvFileParser.getUpdateRecords();
+            if (records != null) {
+                for (final MappedRecord record : records) {
+                    System.out.println("UPDATE: " + record);
+                    final IncidentType incident = Util.getIncidentDocument(record);
+                }
+            }
             records = csvFileParser.getDeleteRecords();
-
-
+            if (records != null) {
+                for (final MappedRecord record : records) {
+                    System.out.println("DELTE: " + record);
+                    final IncidentType incident = Util.getIncidentDocument(record);
+                }
+            }
+            if (csvFileParser.getErrorList().length() > 0) {
+                String[] eMessages = csvFileParser.getErrorList().split("\n", -1);
+                for (String e : eMessages) {
+                    if (e.length() > 0) { System.err.println(e); }
+                }
+            }
+            System.err.println
+                ("=======================================================================================================================");
+            return;
+        }
+        catch (Throwable e) {
+            System.err.println(">>>>>>>>>>\nError: " + e.getMessage() + "\n<<<<<<<<<<");
+            System.err.println
+                ("=======================================================================================================================");
+            return;
         }
     }
 
     @Test
     public void testCSVUpload() throws Throwable {
 
-        this.testWalmart();
-        // this.testMacys();
-        // this.testTarget();
-        // this.testBoyd();
-        // this.testCostco();
-        // this.testIrWin();
-        // this.testWalgreen();
-        // testLowes();
-    }
+        // test the empty entries
+        processingCSV("src/test/resources/config/testDuplicateAttribute.config",
+                      "src/test/resources/data/test-empty.csv", null);
 
-    private void testIrWin() throws Throwable {
+        // test duplicate index using the same column
+        processingCSV("src/test/resources/config/testDuplicateIndex.config", "src/test/resources/data/test.csv",
+                      null);
 
-        final String path = "src/main/webapp/config/irwin.config";
-        final FileInputStream fis = new FileInputStream(new File(path));
-        final File csvFile = new File("src/test/resources/IRWINexport.csv");
-        final ConfigFilePaser configFileParser = new ConfigFilePaser("irwin.config", fis);
-        final CSVFileParser csvFileParser = new CSVFileParser(csvFile,
-            null,
-            configFileParser.getConfigMap());
-        final MappedRecord[] records = csvFileParser.getNewRecords();
-        for (final MappedRecord record : records) {
-            final IncidentType incident = Util.getIncidentDocument(record);
-            System.out.println("Record: " + incident);
-        }
-    }
+        // test duplicate attributes using the same column
+        processingCSV("src/test/resources/config/testDuplicateAttribute.config", "src/test/resources/data/test.csv",
+                      null);
 
-    private void testLowes() throws Throwable {
+        // test the missing required attributes
+        processingCSV("src/test/resources/config/testMissingAttribute.config", "src/test/resources/data/test.csv",
+                      null);
 
-        final String path = "src/main/webapp/config/lowes.config";
-        final FileInputStream fis = new FileInputStream(new File(path));
-        final File csvFile = new File("src/test/resources/lowes.1.csv");
-        final ConfigFilePaser configFileParser = new ConfigFilePaser("lowes.config", fis);
-        final CSVFileParser csvFileParser = new CSVFileParser(csvFile,
-            null,
-            configFileParser.getConfigMap());
-        MappedRecord[] records = csvFileParser.getNewRecords();
-        if (records != null) {
-            for (final MappedRecord record : records) {
-                final IncidentType incident = Util.getIncidentDocument(record);
-                System.out.println("New Record: " + incident);
-            }
-        }
-        if ((records = csvFileParser.getUpdateRecords()) != null) {
-            for (final MappedRecord record : records) {
-                final IncidentType incident = Util.getIncidentDocument(record);
-                System.out.println("Updated Record: " + incident);
-            }
-        }
-        if ((records = csvFileParser.getDeleteRecords()) != null) {
-            for (final MappedRecord record : records) {
-                final IncidentType incident = Util.getIncidentDocument(record);
-                System.out.println("Deleted Record: " + incident);
-            }
-        }
-    }
+        // CVS
+        processingCSV("src/main/webapp/config/cvs.config", "src/test/resources/data/cvs.csv", null);
 
-    private void testMacys() throws Throwable {
+        // Macys
+        processingCSV("src/main/webapp/config/macys.config", "src/test/resources/data/macys.csv", null);
 
-        final String path = "src/main/webapp/config/macys.config";
-        final FileInputStream fis = new FileInputStream(new File(path));
-        final File csvFile = new File("src/test/resources/a.Macys.csv");
-        final ConfigFilePaser configFileParser = new ConfigFilePaser("macys.config", fis);
-        final CSVFileParser csvFileParser = new CSVFileParser(csvFile,
-            null,
-            configFileParser.getConfigMap());
-        final MappedRecord[] records = csvFileParser.getNewRecords();
-        for (final MappedRecord record : records) {
-            final IncidentType incident = Util.getIncidentDocument(record);
-            System.out.println("Record: " + incident);
-        }
-    }
+        // Sears
+        processingCSV("src/main/webapp/config/sears.config", "src/test/resources/data/sears.csv", null);
 
-    private void testSears() throws Throwable {
+        // Dick's
+        processingCSV("src/main/webapp/config/dicks.config", "src/test/resources/data/dicks.csv", null);
 
-        final String path = "src/main/webapp/config/sears.config";
-        final FileInputStream fis = new FileInputStream(new File(path));
-        final File csvFile = new File("src/test/resources/distance.csv");
-        final ConfigFilePaser configFileParser = new ConfigFilePaser("sears.config", fis);
-        final CSVFileParser csvFileParser = new CSVFileParser(csvFile,
-            null,
-            configFileParser.getConfigMap());
-        final MappedRecord[] records = csvFileParser.getNewRecords();
-        for (final MappedRecord record : records) {
-            final IncidentType incident = Util.getIncidentDocument(record);
-            System.out.println("Record: " + incident);
-        }
+        // PGNE
+        processingCSV("src/main/webapp/config/pgne.config", "src/test/resources/data/pgne.csv", null);
+
+        // Walgreens
+        // processingCSV("src/main/webapp/config/walgreen.config", "src/test/resources/data/WalgreenStatus-org.csv",
+        // "src/main/webapp/config/walgreen.csv");
+
+        // processingCSV("src/main/webapp/config/walgreen.config", "src/test/resources/data/a.Walgreen.csv",
+        // "src/main/webapp/config/walgreen.csv");
+
+        // Walmart
+        processingCSV("src/main/webapp/config/walmart.config", "src/test/resources/data/walmart.csv", null);
+
+        // CostCo
+        processingCSV("src/main/webapp/config/costco.config", "src/test/resources/data/costco.csv", null);
+
+        // Target
+        processingCSV("src/main/webapp/config/target.config", "src/test/resources/data/target.csv", null);
+
+        // Boyd
+        processingCSV("src/main/webapp/config/boyd.config", "src/test/resources/data/boyd.csv", null);
+
+        // Irwin
+        processingCSV("src/main/webapp/config/irwin.config", "src/test/resources/data/irwin.csv", null);
+
+        // Lowes
+        processingCSV("src/main/webapp/config/lowes.config", "src/test/resources/data/lowes.csv", null);
+
     }
 
     @Test
@@ -180,40 +151,5 @@ public class CSVParserTest {
 
         key = " abc def ";
         System.out.println("[" + key + "] -> [" + key.trim() + "]");
-    }
-
-    private void testTarget() throws Throwable {
-
-        final String path = "src/main/webapp/config/target.config";
-        final FileInputStream fis = new FileInputStream(new File(path));
-        final File csvFile = new File("src/test/resources/a.Target.csv");
-        final ConfigFilePaser configFileParser = new ConfigFilePaser("target.config", fis);
-        final CSVFileParser csvFileParser = new CSVFileParser(csvFile,
-            null,
-            configFileParser.getConfigMap());
-        final MappedRecord[] records = csvFileParser.getNewRecords();
-        for (final MappedRecord record : records) {
-            final IncidentType incident = Util.getIncidentDocument(record);
-            System.out.println("Record: " + incident);
-        }
-    }
-
-    private void testWalgreen() throws Throwable {
-
-        final String path = "src/main/webapp/config/walgreen.config";
-        final FileInputStream fis = new FileInputStream(new File(path));
-        final String baseFilename = "src/main/webapp/config/walgreen.csv";
-        final FileInputStream baseIS = new FileInputStream(new File(baseFilename));
-        final ConfigFilePaser configFileParser = new ConfigFilePaser("walgreen.config", fis);
-        final File csvFile = new File("src/test/resources/a.Walgreen.csv");
-        final CSVFileParser csvFileParser = new CSVFileParser(csvFile,
-            baseIS,
-            configFileParser.getConfigMap());
-        final MappedRecord[] records = csvFileParser.getNewRecords();
-        for (final MappedRecord record : records) {
-            System.out.println("Record: " + record);
-            System.out.println("Incident Document:\n" + Util.getIncidentDocument(record) + "\n");
-        }
-
     }
 }

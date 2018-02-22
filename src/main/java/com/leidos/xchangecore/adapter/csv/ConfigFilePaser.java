@@ -1,17 +1,16 @@
 package com.leidos.xchangecore.adapter.csv;
 
+import com.leidos.xchangecore.adapter.dao.CoreConfigurationDao;
+import com.leidos.xchangecore.adapter.model.Configuration;
+import com.leidos.xchangecore.adapter.model.CoreConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.leidos.xchangecore.adapter.dao.CoreConfigurationDao;
-import com.leidos.xchangecore.adapter.model.Configuration;
-import com.leidos.xchangecore.adapter.model.CoreConfiguration;
 
 public class ConfigFilePaser {
 
@@ -40,8 +39,8 @@ public class ConfigFilePaser {
 
         super();
 
-        final String filename = configFilename;
-        final String creator = filename.substring(0, filename.indexOf("."));
+        final String creator =
+            configFilename.substring(configFilename.lastIndexOf("/") + 1, configFilename.lastIndexOf("."));
         logger.debug("Creator: " + creator);
 
         int startCount = 0;
@@ -63,12 +62,13 @@ public class ConfigFilePaser {
                     continue;
                 }
             }
-        } catch (final Exception e) {
-            throw new Exception("Parsing: " + configFilename + ": " + e.getMessage());
+        }
+        catch (final Exception e) {
+            throw new Exception(e.getMessage());
         }
 
         if (startCount != endCount) {
-            throw new Exception("Parsing: " + configFilename + " incompleted configuration block");
+            throw new Exception("Configuration File: " + configFilename + ": incomplete configuration block");
         }
 
         try {
@@ -94,22 +94,23 @@ public class ConfigFilePaser {
                 } else if (line.equalsIgnoreCase(Configuration.N_Configuration_End)) {
                     logger.debug("Configuration: .. end ...");
                     if (configuration.isValid()) {
-                        getCoreConfigurationDao().makePersistent(new CoreConfiguration(configuration.getUri(),
-                                                                                       configuration.getUsername(),
-                                                                                       configuration.getPassword()));
+                        getCoreConfigurationDao().makePersistent(
+                            new CoreConfiguration(configuration.getUri(), configuration.getUsername(),
+                                                  configuration.getPassword()));
                         configurationList.add(configuration);
                         configuration = null;
                         continue;
                     } else {
-                        throw new Exception("Parsing: " + configFilename + ": Invalid format ...");
+                        throw new Exception(
+                            "Configuration File: " + configFilename + ": " + configuration.getMissingAttributes());
                     }
                 }
                 if (configuration == null) {
-                    throw new Exception("Parsing: " + configFilename + ": Invalid format ...");
+                    throw new Exception("Configuration File: " + configFilename + ": Invalid format ...");
                 }
                 final String[] tokens = line.split(",", -1);
                 if (tokens.length != 2) {
-                    logger.error("Invalid formated Line: [" + line + "]");
+                    logger.error("Configuration File: " + configFilename + "Invalid formated Line: [" + line + "]");
                     continue;
                 }
                 tokens[0] = tokens[0].trim().toLowerCase();
@@ -118,18 +119,20 @@ public class ConfigFilePaser {
             }
             if (configuration != null) {
                 if (configuration.isValid()) {
-                    getCoreConfigurationDao().makePersistent(new CoreConfiguration(configuration.getUri(),
-                                                                                   configuration.getUsername(),
-                                                                                   configuration.getPassword()));
+                    getCoreConfigurationDao().makePersistent(
+                        new CoreConfiguration(configuration.getUri(), configuration.getUsername(),
+                                              configuration.getPassword()));
 
                     configurationList.add(configuration);
                 } else {
-                    throw new Exception("... Invalid format ...");
+                    throw new Exception(
+                        "Configuration File: " + configFilename + ": " + configuration.getMissingAttributes());
                 }
             }
             reader.close();
-        } catch (final Exception e) {
-            throw new Exception("Parsing: " + configFilename + ": " + e.getMessage());
+        }
+        catch (final Exception e) {
+            throw new Exception("Configuration File: " + configFilename + ", Error: " + e.getMessage());
         }
     }
 
