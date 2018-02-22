@@ -1,5 +1,9 @@
 Initial check-in for csv adapter.
 
+2018-02-21: commit: d37d1f3b3e0dce8d10ce081cab1260c9313f281e
+    - To test all the configuration files using the test data.
+    - To avoid the incident creationg while there is duplicate index existed.
+
 2018-01-18:	commit: bd1bdfcea7ca7397cedce2c8cb26e822225779ef
 	- Make sure the description field not needed as long as the full.description is set to true.
 	- Throw exception when there are more than one field has same column defined.
