@@ -35,170 +35,21 @@ import java.io.InputStream;
 import java.util.List;
 
 @SuppressWarnings("serial")
-public class UploadPage
-    extends WebPage {
-
-    /**
-     * Form for uploads.
-     */
-    private class FileUploadForm
-        extends Form<Void> {
-
-        FileUploadField fileUploadField;
-
-        /**
-         * Construct.
-         *
-         * @param name Component name
-         */
-        public FileUploadForm(String name) {
-
-            super(name);
-
-            // set this form to multipart mode (always needed for uploads!)
-            setMultiPart(true);
-
-            // Add one file input field
-            this.add(fileUploadField = new FileUploadField("fileInput"));
-
-            // Set maximum size to 100K for demo purposes
-            // setMaxSize(Bytes.kilobytes(100));
-        }
-
-        /**
-         * @see org.apache.wicket.markup.html.form.Form#onSubmit()
-         */
-        @Override
-        protected void onSubmit() {
-
-            final List<FileUpload> uploads = fileUploadField.getFileUploads();
-
-            String errorMessage = null;
-
-            if (uploads != null) {
-
-                try {
-                    getUploadFolder().ensureExists();
-                }
-                catch (final IOException ioe) {
-                    errorMessage = "Upload Folder not existed and creation failed: " + ioe.getMessage();
-                    logger.error(errorMessage);
-                    UploadPage.this.error(errorMessage);
-                    return;
-                }
-
-                final boolean isRemoved = getUploadFolder().removeFiles();
-                logger.debug("Removed all the files under xchangecore-uploads: " +
-                                 (isRemoved ? " success" : " failure"));
-
-                for (final FileUpload upload : uploads) {
-                    // Create a new file
-                    final File newFile = new File(getUploadFolder(), upload.getClientFileName());
-
-                    info("Upload file: [" + upload.getClientFileName() + "] ...");
-                    setMessage("Upload file: [" + upload.getClientFileName() + "] ...");
-
-                    try {
-                        newFile.createNewFile();
-                        upload.writeTo(newFile);
-                    }
-                    catch (final Exception e) {
-                        throw new IllegalStateException("Unable to write file", e);
-                    }
-
-                    try {
-                        for (final Configuration configuration : configurationList) {
-                            final CSVFileParser csvFileParser = new CSVFileParser(newFile,
-                                                                                  getFileStream(baseFilename),
-                                                                                  configuration);
-
-                            redirectUrl = configuration.getRedirectUrl();
-                            final WebServiceClient wsClient = new WebServiceClient(configuration.getUri(),
-                                                                                   configuration.getUsername(),
-                                                                                   configuration.getPassword());
-
-                            numOfCreation = numOfUpdate = numOfDeletion = 0;
-
-                            // get the new Incidents
-                            final MappedRecord[] records = csvFileParser.getNewRecords();
-
-                            setMessage("......");
-                            if (records != null) {
-                                numOfCreation = records.length;
-                                info("Created: " + numOfCreation + " records");
-                                for (final MappedRecord r : records) {
-                                    if (wsClient.createIncident(r)) {
-                                        CSVFileParser.getMappedRecordDao().makePersistent(r);
-                                    }
-                                }
-                            }
-
-                            // update the incidents
-                            final MappedRecord[] updateRecordSet = csvFileParser.getUpdateRecords();
-                            if (updateRecordSet != null) {
-                                numOfUpdate = updateRecordSet.length;
-                                info("Updated: " + numOfUpdate + " records");
-                                for (final MappedRecord r : updateRecordSet) {
-                                    if (wsClient.updateIncident(r)) {
-                                        CSVFileParser.getMappedRecordDao().makePersistent(r);
-                                    }
-                                }
-                            }
-
-                            // delete the incidents
-                            final MappedRecord[] deleteRecordSet = csvFileParser.getDeleteRecords();
-                            if (deleteRecordSet != null) {
-                                numOfDeletion = deleteRecordSet.length;
-                                info("Deleted: " + numOfDeletion + " records");
-                                for (final MappedRecord r : deleteRecordSet) {
-                                    if (wsClient.deleteIncident(r)) {
-                                        CSVFileParser.getMappedRecordDao().makeTransient(r);
-                                    }
-                                }
-                            }
-
-                            logger.debug("number of creation/update/deletion: " + numOfCreation + "/" + numOfUpdate +
-                                             "/" + numOfDeletion);
-
-                            if (csvFileParser.getErrorList().length() > 0) {
-                                errorMessage = csvFileParser.getErrorList();
-                            }
-                        }
-                        info("Upload is done ...");
-                        Files.remove(newFile);
-                        if (errorMessage.length() > 0) {
-                            throw new Exception(errorMessage);
-                        }
-                    }
-                    catch (final Throwable e) {
-                        logger.error("Exception: " + e.getMessage());
-                        String[] errors = e.getMessage().split("\n", -1);
-                        for (String eMsg : errors) {
-                            if (eMsg.length() > 0) { UploadPage.this.error("Exception: " + eMsg); }
-                        }
-                    }
-                }
-            }
-        }
-    }
+public class UploadPage extends WebPage {
 
     private static final Logger logger = LoggerFactory.getLogger(UploadPage.class);
-
     private static final String ConfigParameterName = "config";
     private static final String ConfigFilePostfix = ".config";
     private static final String BaseFilePostfix = ".csv";
     private static String redirectUrl = "http://www.google.com";
-
     private int numOfCreation = 0;
     private int numOfUpdate = 0;
     private int numOfDeletion = 0;
-
     // private final InputStream configInputStream = null;
     // private final InputStream baseInputStream = null;
     private String baseFilename;
     private String configFilename;
     private String message = "";
-
     private List<Configuration> configurationList = null;
 
     /**
@@ -206,7 +57,7 @@ public class UploadPage
      *
      * @param parameters Page parameters
      */
-    public UploadPage(final PageParameters parameters) {
+    public UploadPage(PageParameters parameters) {
 
         // turn the version off
         setVersioned(false);
@@ -220,12 +71,12 @@ public class UploadPage
 
         // Add simple upload form, which is hooked up to its feedback panel by
         // virtue of that panel being nested in the form.
-        final FileUploadForm simpleUploadForm = new FileUploadForm("simpleUpload");
+        FileUploadForm simpleUploadForm = new FileUploadForm("simpleUpload");
         simpleUploadForm.add(new UploadProgressBar("progress", simpleUploadForm, simpleUploadForm.fileUploadField));
-        this.add(simpleUploadForm);
+        add(simpleUploadForm);
 
         final PropertyModel<String> messageModel = new PropertyModel<String>(this, "message");
-        this.add(new Label("statusMessage", messageModel) {
+        add(new Label("statusMessage", messageModel) {
 
             @Override
             public boolean isVisible() {
@@ -234,9 +85,9 @@ public class UploadPage
             }
         });
 
-        final FeedbackPanel uploadFeedback = new FeedbackPanel("feedback");
+        FeedbackPanel uploadFeedback = new FeedbackPanel("feedback");
         uploadFeedback.setOutputMarkupId(true);
-        this.add(uploadFeedback);
+        add(uploadFeedback);
 
         /*
         final ModalWindow statusPage = createStatusPage(numOfCreation, numOfUpdate, numOfDeletion);
@@ -251,7 +102,7 @@ public class UploadPage
         });
          */
 
-        this.add(new AjaxLink<Void>("redirect") {
+        add(new AjaxLink<Void>("redirect") {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -261,8 +112,8 @@ public class UploadPage
             }
         });
 
-        if (parameters.get(ConfigParameterName) == null) {
-            UploadPage.this.error("No configuration defined: Usage: xcadapter?config=somename");
+        if (parameters.get(ConfigParameterName)==null) {
+            error("No configuration defined: Usage: xcadapter?config=somename");
             return;
         }
         configFilename = parameters.get(ConfigParameterName) + ConfigFilePostfix;
@@ -270,7 +121,7 @@ public class UploadPage
         info("UploadPage: Configuration File: " + configFilename);
         logger.debug("UploadPage: configFilename: " + configFilename);
 
-        if (getFileStream(configFilename) == null) {
+        if (getFileStream(configFilename)==null) {
             error("Configuration File: " + configFilename + " Not existed");
             return;
         }
@@ -278,21 +129,21 @@ public class UploadPage
             configurationList = new ConfigFilePaser(configFilename,
                                                     getFileStream(configFilename)).listOfConfiguration();
         }
-        catch (final Exception e) {
+        catch (Exception e) {
             error(e.getMessage());
         }
     }
 
     private InputStream getFileStream(String filename) {
 
-        final List<IResourceFinder> finders = UploadPage.this.getApplication().getResourceSettings().getResourceFinders();
-        for (final IResourceFinder finder : finders) {
-            final IResourceStream resource = finder.find(UrlResourceStream.class, "/config/" + filename);
-            if (resource != null && resource instanceof UrlResourceStream) {
+        List<IResourceFinder> finders = getApplication().getResourceSettings().getResourceFinders();
+        for (IResourceFinder finder : finders) {
+            IResourceStream resource = finder.find(UrlResourceStream.class, "/config/" + filename);
+            if (resource!=null && resource instanceof UrlResourceStream) {
                 try {
                     return ((UrlResourceStream) resource).getInputStream();
                 }
-                catch (final ResourceStreamNotFoundException e) {
+                catch (ResourceStreamNotFoundException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                     return null;
@@ -303,8 +154,6 @@ public class UploadPage
         return null;
     }
 
-    // private ConfigFilePaser configFileParser = null;
-
     /**
      * Reference to listview for easy access.
      */
@@ -312,6 +161,13 @@ public class UploadPage
     public String getMessage() {
 
         return message;
+    }
+
+    // private ConfigFilePaser configFileParser = null;
+
+    public void setMessage(String message) {
+
+        this.message = message;
     }
 
     /*
@@ -360,8 +216,142 @@ public class UploadPage
         return ((XchangeCoreAdapter) Application.get()).getUploadFolder();
     }
 
-    public void setMessage(String message) {
+    /**
+     * Form for uploads.
+     */
+    private class FileUploadForm extends Form<Void> {
 
-        this.message = message;
+        FileUploadField fileUploadField;
+
+        /**
+         * Construct.
+         *
+         * @param name Component name
+         */
+        public FileUploadForm(String name) {
+
+            super(name);
+
+            // set this form to multipart mode (always needed for uploads!)
+            setMultiPart(true);
+
+            // Add one file input field
+            add(fileUploadField = new FileUploadField("fileInput"));
+
+            // Set maximum size to 100K for demo purposes
+            // setMaxSize(Bytes.kilobytes(100));
+        }
+
+        /**
+         * @see org.apache.wicket.markup.html.form.Form#onSubmit()
+         */
+        @Override
+        protected void onSubmit() {
+
+            List<FileUpload> uploads = fileUploadField.getFileUploads();
+
+            String errorMessage = null;
+
+            if (uploads!=null) {
+
+                try {
+                    getUploadFolder().ensureExists();
+                }
+                catch (IOException ioe) {
+                    errorMessage = "Upload Folder not existed and creation failed: " + ioe.getMessage();
+                    logger.error(errorMessage);
+                    UploadPage.this.error(errorMessage);
+                    return;
+                }
+
+                boolean isRemoved = getUploadFolder().removeFiles();
+                logger.debug(
+                    "Removed all the files under xchangecore-uploads: " + (isRemoved ? " success" : " failure"));
+
+                for (FileUpload upload : uploads) {
+                    // Create a new file
+                    File newFile = new File(getUploadFolder(), upload.getClientFileName());
+
+                    info("Upload file: [" + upload.getClientFileName() + "] ...");
+                    setMessage("Upload file: [" + upload.getClientFileName() + "] ...");
+
+                    try {
+                        newFile.createNewFile();
+                        upload.writeTo(newFile);
+                    }
+                    catch (Exception e) {
+                        throw new IllegalStateException("Unable to write file", e);
+                    }
+
+                    try {
+                        for (Configuration configuration : configurationList) {
+                            CSVFileParser csvFileParser = new CSVFileParser(newFile, getFileStream(baseFilename),
+                                                                            configuration);
+
+                            redirectUrl = configuration.getRedirectUrl();
+                            WebServiceClient wsClient = new WebServiceClient(configuration.getUri(),
+                                                                             configuration.getUsername(),
+                                                                             configuration.getPassword());
+
+                            numOfCreation = numOfUpdate = numOfDeletion = 0;
+
+                            // get the new Incidents
+                            MappedRecord[] records = csvFileParser.getNewRecords();
+
+                            setMessage("......");
+                            if (records!=null) {
+                                numOfCreation = records.length;
+                                info("Created: " + numOfCreation + " records");
+                                for (MappedRecord r : records) {
+                                    if (wsClient.createIncident(r)) {
+                                        CSVFileParser.getMappedRecordDao().makePersistent(r);
+                                    }
+                                }
+                            }
+
+                            // update the incidents
+                            MappedRecord[] updateRecordSet = csvFileParser.getUpdateRecords();
+                            if (updateRecordSet!=null) {
+                                numOfUpdate = updateRecordSet.length;
+                                info("Updated: " + numOfUpdate + " records");
+                                for (MappedRecord r : updateRecordSet) {
+                                    if (wsClient.updateIncident(r)) {
+                                        CSVFileParser.getMappedRecordDao().makePersistent(r);
+                                    }
+                                }
+                            }
+
+                            // delete the incidents
+                            MappedRecord[] deleteRecordSet = csvFileParser.getDeleteRecords();
+                            if (deleteRecordSet!=null) {
+                                numOfDeletion = deleteRecordSet.length;
+                                info("Deleted: " + numOfDeletion + " records");
+                                for (MappedRecord r : deleteRecordSet) {
+                                    if (wsClient.deleteIncident(r)) {
+                                        CSVFileParser.getMappedRecordDao().makeTransient(r);
+                                    }
+                                }
+                            }
+
+                            logger.debug(
+                                "number of creation/update/deletion: " + numOfCreation + "/" + numOfUpdate + "/" + numOfDeletion);
+
+                            if (csvFileParser.getErrorList().length() > 0) {
+                                errorMessage = csvFileParser.getErrorList();
+                            }
+                        }
+                        info("Upload is done ...");
+                        Files.remove(newFile);
+                        if (errorMessage.length() > 0) {
+                            throw new Exception(errorMessage);
+                        }
+                    }
+                    catch (Throwable e) {
+                        logger.error("Exception: " + e.getMessage());
+                        UploadPage.this.error("Exception: " + e.getMessage());
+                    }
+                }
+            }
+        }
     }
 }

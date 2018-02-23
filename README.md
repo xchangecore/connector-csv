@@ -1,5 +1,8 @@
 Initial check-in for csv adapter.
 
+2018-02-22:
+    - Correct the error message display.
+
 2018-02-21: commit: d37d1f3b3e0dce8d10ce081cab1260c9313f281e
     - To test all the configuration files using the test data.
     - To avoid the incident creationg while there is duplicate index existed.
