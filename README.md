@@ -1,5 +1,8 @@
 Initial check-in for csv adapter.
 
+2018-02-24:
+    - Correct the proper behavior when the auto.close set to false
+
 2018-02-22:
     - Correct the error message display.
 
