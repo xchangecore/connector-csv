@@ -336,13 +336,15 @@ public class UploadPage extends WebPage {
                             logger.debug(
                                 "number of creation/update/deletion: " + numOfCreation + "/" + numOfUpdate + "/" + numOfDeletion);
 
-                            if (csvFileParser.getErrorList().length() > 0) {
+                            if (csvFileParser.getErrorList() != null && csvFileParser.getErrorList().length() > 0) {
                                 errorMessage = csvFileParser.getErrorList();
+                            } else {
+                                errorMessage = null;
                             }
                         }
                         info("Upload is done ...");
                         Files.remove(newFile);
-                        if (errorMessage.length() > 0) {
+                        if (errorMessage != null && errorMessage.length() > 0) {
                             throw new Exception(errorMessage);
                         }
                     }

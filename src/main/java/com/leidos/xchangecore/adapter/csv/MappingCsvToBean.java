@@ -27,7 +27,7 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
 
         configuration = configMap;
         setAutoClose(configMap.isAutoClose());
-        final int columns = Configuration.DefinedColumnNames.length;
+        int columns = Configuration.DefinedColumnNames.length;
         columnNames = new String[columns][];
         columnIndexes = new Integer[columns][];
         for (int i = 0; i < columns; i++) {
@@ -35,8 +35,7 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
             if (configMap.getFieldValue(Configuration.DefinedColumnNames[i]) == null) {
                 continue;
             }
-            columnNames[i] = configMap.getFieldValue(Configuration.DefinedColumnNames[i])
-                .split("[.]", -1);
+            columnNames[i] = configMap.getFieldValue(Configuration.DefinedColumnNames[i]).split("[.]", -1);
             columnIndexes[i] = new Integer[columnNames[i].length];
         }
     }
@@ -78,30 +77,29 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
             figureOutMultiColumnField(((MappingHeaderColumnNameTranslateMappingStrategy) mapper).getHeaders());
 
             String[] columns;
-            final List<MappedRecord> list = new ArrayList<MappedRecord>();
+            List<MappedRecord> list = new ArrayList<MappedRecord>();
             while (null != (columns = csvReader.readNext())) {
-                final MappedRecord bean = processLine(mapper, columns);
+                MappedRecord bean = processLine(mapper, columns);
                 postProcessing(bean, columns);
                 list.add(bean);
             }
             return list;
         }
-        catch (final Exception e) {
+        catch (Exception e) {
             throw new RuntimeException("Error parsing CSV!" + e.getMessage());
         }
     }
 
     @Override
-    protected Object convertValue(String value, PropertyDescriptor prop)
-        throws InstantiationException, IllegalAccessException {
+    protected Object convertValue(String value, PropertyDescriptor prop) throws InstantiationException, IllegalAccessException {
 
-        final PropertyEditor editor = getPropertyEditor(prop);
+        PropertyEditor editor = getPropertyEditor(prop);
         Object obj = value;
         if (null != editor) {
             try {
                 editor.setAsText(value);
             }
-            catch (final NumberFormatException e) {
+            catch (NumberFormatException e) {
                 logger.warn("Value: [" + value + "]: " + e.getMessage());
                 editor.setAsText("0");
             }
@@ -110,8 +108,7 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
         return obj;
     }
 
-    private String getRecordValue(MappedRecord record, Configuration configuration,
-                                  String attributeName, String[] columnValues, Integer columnIndex) {
+    private String getRecordValue(MappedRecord record, Configuration configuration, String attributeName, String[] columnValues, Integer columnIndex) {
 
         if (attributeName.equals(configuration.getDescription())) {
             return record.getDescription();
@@ -132,25 +129,25 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
         // fill the empty fields
         if (record.getCategory().equals("N/A")) {
             record.setCategory(
-                getAttributeValue(record, this.configuration.getDuplicateAttributeValue(Configuration.FN_Category)));
+                getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_Category)));
         }
         if (record.getFilter().equals("N/A")) {
             record.setFilter(
-                getAttributeValue(record, this.configuration.getDuplicateAttributeValue(Configuration.FN_FilterName)));
+                getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_FilterName)));
         }
         if (record.getIndex().equals("N/A")) {
             record.setIndex(
-                getAttributeValue(record, this.configuration.getDuplicateAttributeValue(Configuration.FN_Index)));
+                getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_Index)));
         }
         if (record.getDescription().equals("N/A")) {
             record.setDescription(
-                getAttributeValue(record, this.configuration.getDuplicateAttributeValue(Configuration.FN_Description)));
+                getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_Description)));
         }
 
         // figure out the content which is the whole row of data
         StringBuffer sb = new StringBuffer();
         sb.append("[");
-        for (final String column : columns) {
+        for (String column : columns) {
             sb.append(column + TokenSeparator);
         }
         String value = sb.toString();
@@ -162,7 +159,7 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
             if (columnNames[i] == null || columnNames[i].length == 1) {
                 continue;
             }
-            final boolean isDescription = Configuration.DefinedColumnNames[i].equalsIgnoreCase(
+            boolean isDescription = Configuration.DefinedColumnNames[i].equalsIgnoreCase(
                 Configuration.FN_Description);
             sb = new StringBuffer();
             for (int j = 0; j < columnNames[i].length; j++) {
