@@ -5,8 +5,8 @@ maven-eclipse.xml
 .settings/
 target/
 Logs/
-data/
 .idea/
 Adapter.iml
-src/main/webapp/config/
 src/test/resources/config/
+data/xchangecore_adapter.script
+data/xchangecore_adapter.properties

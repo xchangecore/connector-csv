@@ -159,14 +159,13 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
             if (columnNames[i] == null || columnNames[i].length == 1) {
                 continue;
             }
-            boolean isDescription = Configuration.DefinedColumnNames[i].equalsIgnoreCase(
-                Configuration.FN_Description);
+            final boolean isDescription = Configuration.DefinedColumnNames[i].equalsIgnoreCase(Configuration.FN_Description);
             sb = new StringBuffer();
             for (int j = 0; j < columnNames[i].length; j++) {
                 if (isDescription) {
                     sb.append("<br/>");
                     sb.append("<b>");
-                    sb.append(columnNames[i][j] + ": ");
+                    sb.append(Configuration.getMappingColumn(columnNames[i][j]) + ": ");
                     sb.append("</b>");
                     sb.append(getRecordValue(record, configuration, columnNames[i][j], columns, columnIndexes[i][j]));
                 } else {

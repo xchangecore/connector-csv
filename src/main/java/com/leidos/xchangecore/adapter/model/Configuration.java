@@ -24,6 +24,7 @@ public class Configuration implements Serializable {
     public static final String FN_DistanceFilterText = "distance.filter.text";
     public static final String FN_Index = "index";
     public static final String FN_Description = "description";
+    public static final String FN_MappingColumns = "mapping.columns";
     public static final String FN_FullDescription = "full.description";
     public static final String FN_AutoClose = "auto.close";
     public static final String FN_URLHost = "url.host";
@@ -31,6 +32,7 @@ public class Configuration implements Serializable {
     public static final String FN_Password = "url.password";
     public static final String FN_RedirectUrl = "url.redirectUrl";
     public static final String urlPostfix = "/core/ws/services";
+
     public static final String[] DefinedColumnNames = new String[]{
         FN_Title,
         FN_Category,
@@ -67,6 +69,25 @@ public class Configuration implements Serializable {
     private String username = "xchangecore";
     private String password = "xchangecore";
     private String redirectUrl = "http://www.google.com";
+
+    private static HashMap<String, String> mappingColumns = new HashMap<String, String>();
+
+    public HashMap<String, String> getMappingColumns() {
+        return mappingColumns;
+    }
+
+    public static String getMappingColumn(String column) {
+        if (mappingColumns.size() == 0) {
+            return column;
+        }
+
+        String mappedColumn = mappingColumns.get(column);
+        return mappedColumn == null ? column : mappedColumn;
+    }
+
+    public void setMappingColumns(HashMap<String, String> mappingColumns) {
+        this.mappingColumns = mappingColumns;
+    }
 
     public String getCategory() {
 
@@ -357,6 +378,16 @@ public class Configuration implements Serializable {
             this.setDistanceFilterText(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_AutoClose)) {
             this.setAutoClose(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_MappingColumns)) {
+            String[] pairs = keyAndValue[1].split("\\.", -1);
+            for (String pair : pairs) {
+                String[] tokens = pair.split(":", -1);
+                if (tokens.length != 2) {
+                    logger.error("[" + pair + "] is not valid key and value");
+                    continue;
+                }
+                mappingColumns.put(tokens[0], tokens[1]);
+            }
         } else if (keyAndValue[0].equalsIgnoreCase(FN_FullDescription)) {
             this.setFullDescription(keyAndValue[1]);
         } else {
