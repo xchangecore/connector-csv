@@ -73,20 +73,39 @@ public class CSVFileParser {
 
             indexSet.add(record.getIndex());
 
+            // if the category.prefix specified, prefix it
             if (configuration.getCategoryPrefix() != null && configuration.getCategoryPrefix().length() > 0) {
                 if (record.getCategory().equalsIgnoreCase("N/A") == false) {
                     record.setCategory(configuration.getCategoryPrefix() + record.getCategory());
                 }
             }
+
+            // if the category.suffix specified, suffix it
+            if (configuration.getCategorySuffix() != null && configuration.getCategorySuffix().length() > 0) {
+                if (record.getCategory().equalsIgnoreCase("N/A") == false) {
+                    record.setCategory(record.getCategory() + configuration.getCategorySuffix());
+                }
+            }
+
             // for the category, we will override with category.fixed if existed
             if (configuration.getCategoryFixed() != null && configuration.getCategoryFixed().length() > 0) {
                 record.setCategory(configuration.getCategoryFixed());
             }
-            if (configuration.getTitlePrefix() != null && configuration.getTitlePrefix() != null && configuration.getTitlePrefix().length() > 0) {
+
+            // if the title.prefix specified, prefix it
+            if (configuration.getTitlePrefix() != null && configuration.getTitlePrefix().length() > 0) {
                 if (record.getTitle().equalsIgnoreCase("N/A") == false) {
                     record.setTitle(configuration.getTitlePrefix() + record.getTitle());
                 }
             }
+
+            // if the title.suffix specified, suffix it
+            if (configuration.getTitleSuffix() != null && configuration.getTitleSuffix().length() > 0) {
+                if (record.getTitle().equalsIgnoreCase("N/A") == false) {
+                    record.setTitle(record.getTitle() + configuration.getTitleSuffix());
+                }
+            }
+
             record.setCreator(configuration.getId());
             record.setLastUpdated(currentDate);
             record.setCoreUri(configuration.getUri());

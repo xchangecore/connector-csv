@@ -15,8 +15,10 @@ public class Configuration implements Serializable {
     public static final String FN_Longitude = "longitude";
     public static final String FN_Title = "title";
     public static final String FN_TitlePrefix = "title.prefix";
+    public static final String FN_TitleSuffix = "title.suffix";
     public static final String FN_Category = "category";
     public static final String FN_CategoryPrefix = "category.prefix";
+    public static final String FN_CategorySuffix = "category.suffix";
     public static final String FN_CategoryFixed = "category.fixed";
     public static final String FN_FilterName = "filter";
     public static final String FN_FilterText = "filter.text";
@@ -51,7 +53,8 @@ public class Configuration implements Serializable {
     final HashMap<String, String> duplicateMap = new HashMap<String, String>();
     private String id;
     private String title;
-    private String titlePrefix;
+    private String titlePrefix = null;
+    private String titleSuffix = null;
     private String category;
     private String filter;
     private String filterText;
@@ -59,8 +62,9 @@ public class Configuration implements Serializable {
     private String distanceFilterText = "";
     private String latitude;
     private String longitude;
-    private String categoryPrefix;
-    private String categoryFixed;
+    private String categoryPrefix = null;
+    private String categorySuffix = null;
+    private String categoryFixed = null;
     private String description; //  = "title.category";
     private String index; //  = "title.category.latitude.longitude";
     private boolean autoClose = true;
@@ -117,6 +121,14 @@ public class Configuration implements Serializable {
     public void setCategoryPrefix(String categoryPrefix) {
 
         this.categoryPrefix = categoryPrefix;
+    }
+
+    public String getCategorySuffix() {
+        return categorySuffix;
+    }
+
+    public void setCategorySuffix(String categorySuffix) {
+        this.categorySuffix = categorySuffix;
     }
 
     public String getDescription() {
@@ -249,6 +261,14 @@ public class Configuration implements Serializable {
         this.titlePrefix = titlePrefix;
     }
 
+    public String getTitleSuffix() {
+        return titleSuffix;
+    }
+
+    public void setTitleSuffix(String titleSuffix) {
+        this.titleSuffix = titleSuffix;
+    }
+
     public String getUri() {
 
         return this.uri;
@@ -348,6 +368,8 @@ public class Configuration implements Serializable {
             this.setTitle(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_TitlePrefix)) {
             this.setTitlePrefix(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_TitleSuffix)) {
+            this.setTitleSuffix(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_Latitude)) {
             this.setLatitude(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_Longitude)) {
@@ -370,6 +392,8 @@ public class Configuration implements Serializable {
             this.setRedirectUrl(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_CategoryPrefix)) {
             this.setCategoryPrefix(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_CategorySuffix)) {
+            this.setCategorySuffix(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_CategoryFixed)) {
             this.setCategoryFixed(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_Distance)) {

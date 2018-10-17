@@ -1,12 +1,9 @@
 package com.leidos.xchangecore.adapter.config;
 
-import java.util.Properties;
-
-import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
-
+import com.leidos.xchangecore.adapter.XchangeCoreAdapter;
+import com.leidos.xchangecore.adapter.dao.CoreConfigurationDao;
+import com.leidos.xchangecore.adapter.dao.DynamoDBDao;
+import com.leidos.xchangecore.adapter.dao.MappedRecordDao;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,9 +18,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
 
-import com.leidos.xchangecore.adapter.XchangeCoreAdapter;
-import com.leidos.xchangecore.adapter.dao.CoreConfigurationDao;
-import com.leidos.xchangecore.adapter.dao.MappedRecordDao;
+import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPException;
+import java.util.Properties;
 
 @Configuration
 public class AdapterSpringConfig {
@@ -53,6 +52,28 @@ public class AdapterSpringConfig {
     @Value("${hibernate.databasePlatform}")
     private String databasePlatform;
 
+    @Value("${amazon.endpoint}")
+    private String amazon_endpoint;
+
+    @Value("${amazon.region}")
+    private String amazon_region;
+
+    @Value("${aws.access.key.id}")
+    private String aws_access_key_id;
+
+    @Value("${aws.secret.access.key}")
+    private String aws_secret_access_key;
+
+    @Value("${nosql.table.name}")
+    private String dynamoDBTableName;
+
+    @Bean
+    public DynamoDBDao dynamoDBDao() {
+        DynamoDBDao dynamoDBDao = new DynamoDBDao();
+        dynamoDBDao.init(aws_access_key_id, aws_secret_access_key, amazon_endpoint, amazon_region, dynamoDBTableName);
+        return dynamoDBDao;
+    }
+
     @Bean
     public CoreConfigurationDao coreConfigurationDao() {
         return new CoreConfigurationDao();
@@ -61,10 +82,7 @@ public class AdapterSpringConfig {
     @Bean
     public DataSource dataSource() {
 
-        return new SimpleDriverDataSource(new org.hsqldb.jdbc.JDBCDriver(),
-            jdbcUrl,
-            username,
-            password);
+        return new SimpleDriverDataSource(new org.hsqldb.jdbc.JDBCDriver(), jdbcUrl, username, password);
     }
 
     @Bean

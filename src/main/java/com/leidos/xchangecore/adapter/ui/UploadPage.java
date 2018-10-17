@@ -3,8 +3,10 @@ package com.leidos.xchangecore.adapter.ui;
 import com.leidos.xchangecore.adapter.XchangeCoreAdapter;
 import com.leidos.xchangecore.adapter.csv.CSVFileParser;
 import com.leidos.xchangecore.adapter.csv.ConfigFilePaser;
+import com.leidos.xchangecore.adapter.dao.DynamoDBDao;
 import com.leidos.xchangecore.adapter.model.Configuration;
 import com.leidos.xchangecore.adapter.model.MappedRecord;
+import com.leidos.xchangecore.adapter.model.MappedRecordJson;
 import com.leidos.xchangecore.adapter.webclient.WebServiceClient;
 import org.apache.wicket.Application;
 import org.apache.wicket.RestartResponseAtInterceptPageException;
@@ -288,6 +290,7 @@ public class UploadPage extends WebPage {
                             CSVFileParser csvFileParser = new CSVFileParser(newFile, getFileStream(baseFilename),
                                                                             configuration);
 
+                            DynamoDBDao dynamoDBDao = new DynamoDBDao();
                             redirectUrl = configuration.getRedirectUrl();
                             WebServiceClient wsClient = new WebServiceClient(configuration.getUri(),
                                                                              configuration.getUsername(),
@@ -304,6 +307,8 @@ public class UploadPage extends WebPage {
                                 info("Created: " + numOfCreation + " records");
                                 for (MappedRecord r : records) {
                                     if (wsClient.createIncident(r)) {
+                                        if (dynamoDBDao != null)
+                                            dynamoDBDao.createEntry(new MappedRecordJson(r));
                                         CSVFileParser.getMappedRecordDao().makePersistent(r);
                                     }
                                 }
@@ -318,6 +323,8 @@ public class UploadPage extends WebPage {
                                     if (wsClient.updateIncident(r)) {
                                         CSVFileParser.getMappedRecordDao().makePersistent(r);
                                     }
+                                    if (dynamoDBDao != null)
+                                        dynamoDBDao.updateEntry(new MappedRecordJson(r));
                                 }
                             }
 
@@ -330,6 +337,8 @@ public class UploadPage extends WebPage {
                                     if (wsClient.deleteIncident(r)) {
                                         CSVFileParser.getMappedRecordDao().makeTransient(r);
                                     }
+                                    if (dynamoDBDao != null)
+                                        dynamoDBDao.deleteEntry(new MappedRecordJson(r).getMapEntry());
                                 }
                             }
 

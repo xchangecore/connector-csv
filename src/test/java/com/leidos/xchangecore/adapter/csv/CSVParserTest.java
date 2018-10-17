@@ -1,6 +1,8 @@
 package com.leidos.xchangecore.adapter.csv;
 
+import com.leidos.xchangecore.adapter.model.IncidentJson;
 import com.leidos.xchangecore.adapter.model.MappedRecord;
+import com.leidos.xchangecore.adapter.model.MappedRecordJson;
 import com.leidos.xchangecore.adapter.util.Util;
 import gov.niem.niem.niemCore.x20.IncidentType;
 import org.junit.Test;
@@ -19,8 +21,8 @@ public class CSVParserTest {
 
     private void processingCSV(final String configFilename, final String cvsFilename, final String baseFilename) {
 
-        System.err.println("\n>>>>>>>>>>\n\tConfiguration:\t" + configFilename + "\n\tCSV File:\t\t" + cvsFilename +
-                               "\n<<<<<<<<<<");
+        System.err.println(
+            "\n>>>>>>>>>>\n\tConfiguration:\t" + configFilename + "\n\tCSV File:\t\t" + cvsFilename + "\n<<<<<<<<<<");
         try {
             // create the csv data file
             final File csvFile = new File(cvsFilename);
@@ -42,21 +44,28 @@ public class CSVParserTest {
             if (records != null) {
                 for (final MappedRecord record : records) {
                     System.out.println("NEW: " + record);
+                    System.out.println("MappedRecordJson: " + new MappedRecordJson(record));
                     final IncidentType incident = Util.getIncidentDocument(record);
+                    System.out.println("NEW Incident: " + incident);
+                    System.out.println("IncidentJson: " + new IncidentJson(incident.xmlText()));
                 }
             }
             records = csvFileParser.getUpdateRecords();
             if (records != null) {
                 for (final MappedRecord record : records) {
                     System.out.println("UPDATE: " + record);
+                    System.out.println("UPDATE Json: " + new MappedRecordJson(record));
                     final IncidentType incident = Util.getIncidentDocument(record);
+                    System.out.println("UPDATE Incident: " + incident);
                 }
             }
             records = csvFileParser.getDeleteRecords();
             if (records != null) {
                 for (final MappedRecord record : records) {
                     System.out.println("DELTE: " + record);
+                    System.out.println("DELTE Json: " + new MappedRecordJson(record));
                     final IncidentType incident = Util.getIncidentDocument(record);
+                    System.out.println("DELETE Incident: " + incident);
                 }
             }
             if (csvFileParser.getErrorList().length() > 0) {
@@ -65,14 +74,14 @@ public class CSVParserTest {
                     if (e.length() > 0) { System.err.println(e); }
                 }
             }
-            System.err.println
-                ("=======================================================================================================================");
+            System.err.println(
+                "=======================================================================================================================");
             return;
         }
         catch (Throwable e) {
             System.err.println(">>>>>>>>>>\nError: " + e.getMessage() + "\n<<<<<<<<<<");
-            System.err.println
-                ("=======================================================================================================================");
+            System.err.println(
+                "=======================================================================================================================");
             return;
         }
     }
@@ -85,8 +94,7 @@ public class CSVParserTest {
                       "src/test/resources/data/test-empty.csv", null);
 
         // test duplicate index using the same column
-        processingCSV("src/test/resources/config/testDuplicateIndex.config", "src/test/resources/data/test.csv",
-                      null);
+        processingCSV("src/test/resources/config/testDuplicateIndex.config", "src/test/resources/data/test.csv", null);
 
         // test duplicate attributes using the same column
         processingCSV("src/test/resources/config/testDuplicateAttribute.config", "src/test/resources/data/test.csv",
