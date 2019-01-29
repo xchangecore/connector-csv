@@ -29,6 +29,7 @@ public class Configuration implements Serializable {
     public static final String FN_MappingColumns = "mapping.columns";
     public static final String FN_FullDescription = "full.description";
     public static final String FN_AutoClose = "auto.close";
+    public static final String FN_EnableXCore = "enable.xcore";
     public static final String FN_URLHost = "url.host";
     public static final String FN_Username = "url.username";
     public static final String FN_Password = "url.password";
@@ -68,6 +69,7 @@ public class Configuration implements Serializable {
     private String description; //  = "title.category";
     private String index; //  = "title.category.latitude.longitude";
     private boolean autoClose = true;
+    private boolean enableXCore = false;
     private boolean fullDescription = false;
     private String uri = "http://localhost";
     private String username = "xchangecore";
@@ -343,6 +345,19 @@ public class Configuration implements Serializable {
         }
     }
 
+    public boolean isEnableXCore() {
+        return enableXCore;
+    }
+
+    public void setEnableXCore(String enableXCore) {
+
+        if (enableXCore.equalsIgnoreCase("true") || enableXCore.equals("1")) {
+            this.enableXCore = true;
+        } else {
+            this.enableXCore = false;
+        }
+    }
+
     public boolean isAutoClose() {
 
         return autoClose;
@@ -402,6 +417,8 @@ public class Configuration implements Serializable {
             this.setDistanceFilterText(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_AutoClose)) {
             this.setAutoClose(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_EnableXCore)) {
+            this.setEnableXCore(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_MappingColumns)) {
             String[] pairs = keyAndValue[1].split("\\.", -1);
             for (String pair : pairs) {

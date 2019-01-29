@@ -35,6 +35,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 @SuppressWarnings("serial")
 public class UploadPage extends WebPage {
@@ -114,7 +116,7 @@ public class UploadPage extends WebPage {
             }
         });
 
-        if (parameters.get(ConfigParameterName)==null) {
+        if (parameters.get(ConfigParameterName) == null) {
             error("No configuration defined: Usage: xcadapter?config=somename");
             return;
         }
@@ -123,7 +125,7 @@ public class UploadPage extends WebPage {
         info("UploadPage: Configuration File: " + configFilename);
         logger.debug("UploadPage: configFilename: " + configFilename);
 
-        if (getFileStream(configFilename)==null) {
+        if (getFileStream(configFilename) == null) {
             error("Configuration File: " + configFilename + " Not existed");
             return;
         }
@@ -141,7 +143,7 @@ public class UploadPage extends WebPage {
         List<IResourceFinder> finders = getApplication().getResourceSettings().getResourceFinders();
         for (IResourceFinder finder : finders) {
             IResourceStream resource = finder.find(UrlResourceStream.class, "/config/" + filename);
-            if (resource!=null && resource instanceof UrlResourceStream) {
+            if (resource != null && resource instanceof UrlResourceStream) {
                 try {
                     return ((UrlResourceStream) resource).getInputStream();
                 }
@@ -254,7 +256,7 @@ public class UploadPage extends WebPage {
 
             String errorMessage = null;
 
-            if (uploads!=null) {
+            if (uploads != null) {
 
                 try {
                     getUploadFolder().ensureExists();
@@ -292,53 +294,63 @@ public class UploadPage extends WebPage {
 
                             DynamoDBDao dynamoDBDao = new DynamoDBDao();
                             redirectUrl = configuration.getRedirectUrl();
-                            WebServiceClient wsClient = new WebServiceClient(configuration.getUri(),
-                                                                             configuration.getUsername(),
-                                                                             configuration.getPassword());
+                            WebServiceClient wsClient = null;
+                            if (configuration.isEnableXCore()) {
+                                wsClient = new WebServiceClient(configuration.getUri(), configuration.getUsername(),
+                                                                configuration.getPassword());
+                            }
 
                             numOfCreation = numOfUpdate = numOfDeletion = 0;
 
                             // get the new Incidents
                             MappedRecord[] records = csvFileParser.getNewRecords();
-
                             setMessage("......");
-                            if (records!=null) {
+                            if (records != null) {
                                 numOfCreation = records.length;
                                 info("Created: " + numOfCreation + " records");
                                 for (MappedRecord r : records) {
-                                    if (wsClient.createIncident(r)) {
-                                        if (dynamoDBDao != null)
-                                            dynamoDBDao.createEntry(new MappedRecordJson(r));
-                                        CSVFileParser.getMappedRecordDao().makePersistent(r);
+                                    if (wsClient != null) {
+                                        wsClient.createIncident(r);
+                                    } else {
+                                        r.setIgID(MappedRecord.GetHash(r.getContent().getBytes()));
                                     }
+                                    logger.debug("create: " + r);
+                                    if (dynamoDBDao != null) {
+                                        dynamoDBDao.createEntry(new MappedRecordJson(r));
+                                    }
+                                    CSVFileParser.getMappedRecordDao().makePersistent(r);
                                 }
                             }
 
                             // update the incidents
                             MappedRecord[] updateRecordSet = csvFileParser.getUpdateRecords();
-                            if (updateRecordSet!=null) {
+                            if (updateRecordSet != null) {
                                 numOfUpdate = updateRecordSet.length;
                                 info("Updated: " + numOfUpdate + " records");
                                 for (MappedRecord r : updateRecordSet) {
-                                    if (wsClient.updateIncident(r)) {
-                                        CSVFileParser.getMappedRecordDao().makePersistent(r);
+                                    CSVFileParser.getMappedRecordDao().makePersistent(r);
+                                    if (wsClient != null) {
+                                        wsClient.updateIncident(r);
                                     }
-                                    if (dynamoDBDao != null)
+                                    if (dynamoDBDao != null) {
                                         dynamoDBDao.updateEntry(new MappedRecordJson(r));
+                                    }
                                 }
                             }
 
                             // delete the incidents
                             MappedRecord[] deleteRecordSet = csvFileParser.getDeleteRecords();
-                            if (deleteRecordSet!=null) {
+                            if (deleteRecordSet != null) {
                                 numOfDeletion = deleteRecordSet.length;
                                 info("Deleted: " + numOfDeletion + " records");
                                 for (MappedRecord r : deleteRecordSet) {
-                                    if (wsClient.deleteIncident(r)) {
-                                        CSVFileParser.getMappedRecordDao().makeTransient(r);
+                                    CSVFileParser.getMappedRecordDao().makeTransient(r);
+                                    if (wsClient != null) {
+                                        wsClient.deleteIncident(r);
                                     }
-                                    if (dynamoDBDao != null)
+                                    if (dynamoDBDao != null) {
                                         dynamoDBDao.deleteEntry(new MappedRecordJson(r).getMapEntry());
+                                    }
                                 }
                             }
 
