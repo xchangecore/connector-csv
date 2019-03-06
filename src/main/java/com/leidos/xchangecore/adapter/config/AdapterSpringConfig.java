@@ -5,9 +5,12 @@ import com.leidos.xchangecore.adapter.dao.CoreConfigurationDao;
 import com.leidos.xchangecore.adapter.dao.DynamoDBDao;
 import com.leidos.xchangecore.adapter.dao.MappedRecordDao;
 import org.hibernate.jpa.HibernatePersistenceProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -28,6 +31,8 @@ import java.util.Properties;
 public class AdapterSpringConfig {
 
     private static final String Key_hibernate_hbm2dll_auto = "hibernate.hbm2ddl.auto";
+
+    private static Logger logger = LoggerFactory.getLogger(AdapterSpringConfig.class);
 
     @Value("${jdbc.url}")
     private String jdbcUrl;
@@ -64,18 +69,24 @@ public class AdapterSpringConfig {
     @Value("${aws.secret.access.key}")
     private String aws_secret_access_key;
 
-    @Value("${nosql.table.name}")
-    private String dynamoDBTableName;
+    @Value("${db.table.name}")
+    private String db_table_name;
 
     @Bean
     public DynamoDBDao dynamoDBDao() {
+
         DynamoDBDao dynamoDBDao = new DynamoDBDao();
-        dynamoDBDao.init(aws_access_key_id, aws_secret_access_key, amazon_endpoint, amazon_region, dynamoDBTableName);
+        dynamoDBDao.init(System.getenv(aws_access_key_id),
+                         System.getenv(aws_secret_access_key),
+                         System.getenv(amazon_endpoint),
+                         System.getenv(amazon_region),
+                         System.getenv(db_table_name));
         return dynamoDBDao;
     }
 
     @Bean
     public CoreConfigurationDao coreConfigurationDao() {
+
         return new CoreConfigurationDao();
     }
 
@@ -113,9 +124,9 @@ public class AdapterSpringConfig {
     public JpaVendorAdapter jpaVendorAdapter() {
 
         final HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
-        adapter.setShowSql(showSql.equalsIgnoreCase("true") ? true : false);
+        adapter.setShowSql(showSql.equalsIgnoreCase("true"));
         adapter.setDatabasePlatform(databasePlatform);
-        adapter.setGenerateDdl(generateDdl.equalsIgnoreCase("true") ? true : false);
+        adapter.setGenerateDdl(generateDdl.equalsIgnoreCase("true"));
 
         return adapter;
     }

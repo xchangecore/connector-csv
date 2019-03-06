@@ -11,6 +11,7 @@ import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.leidos.xchangecore.adapter.model.MappedRecordJson;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -27,22 +28,30 @@ public class DynamoDBDao {
 
     }
 
-    public void init(String aws_access_key_id, String aws_secret_access_key, String amazon_endpoint, String amazon_region, String dynamoDBTableName) {
+    public void init(String aws_access_key_id,
+        String aws_secret_access_key,
+        String amazon_endpoint,
+        String amazon_region,
+        String db_table_name) {
 
-        if (aws_access_key_id == null || aws_secret_access_key == null || amazon_endpoint == null || amazon_region == null || dynamoDBTableName == null) {
+        if (aws_access_key_id == null ||
+            aws_secret_access_key == null ||
+            amazon_endpoint == null ||
+            amazon_region == null ||
+            db_table_name == null) {
             return;
         }
 
         BasicAWSCredentials credentials = new BasicAWSCredentials(aws_access_key_id, aws_secret_access_key);
 
         try {
-            AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withCredentials(
-                new AWSStaticCredentialsProvider(credentials)).withEndpointConfiguration(
-                new AwsClientBuilder.EndpointConfiguration(amazon_endpoint, amazon_region)).build();
+            AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(
+                credentials)).withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(amazon_endpoint,
+                                                                                                   amazon_region)).build();
             dynamoDB = new DynamoDB(client);
 
             logger.debug("Setting up DynamoDB client");
-            table = dynamoDB.getTable(dynamoDBTableName);
+            table = dynamoDB.getTable(db_table_name);
         } catch (Throwable e) {
             logger.error("Cannot create NOSQL Table: " + e.getMessage());
         }
@@ -65,11 +74,19 @@ public class DynamoDBDao {
 
         try {
             logger.debug("deleteEntry: Title: [" + key.getKey() + "] & MD5hash: [" + key.getValue() + "]");
-            DeleteItemSpec deleteItemSpec = new DeleteItemSpec().withPrimaryKey(new PrimaryKey("title", key.getKey(), "md5hash", key.getValue()));
+            DeleteItemSpec deleteItemSpec = new DeleteItemSpec().withPrimaryKey(new PrimaryKey("title",
+                                                                                               key.getKey(),
+                                                                                               "md5hash",
+                                                                                               key.getValue()));
             table.deleteItem(deleteItemSpec);
             logger.debug("eleteEntry: ... successful ...");
         } catch (Exception e) {
-            logger.error("deleteEntry: Title: [" + key.getKey() + "] & MD5hash: [" + key.getValue() + "]: Error: " + e.getMessage());
+            logger.error("deleteEntry: Title: [" +
+                         key.getKey() +
+                         "] & MD5hash: [" +
+                         key.getValue() +
+                         "]: Error: " +
+                         e.getMessage());
             return false;
         }
 
@@ -97,8 +114,8 @@ public class DynamoDBDao {
 
         try {
             logger.debug("createEntry: Title: [" + title + "] & MD5hash: [" + md5hash + "]");
-            table.putItem(
-                new Item().withPrimaryKey("md5hash", md5hash, "title", title).withJSON("item", item.toString()));
+            table.putItem(new Item().withPrimaryKey("md5hash", md5hash, "title", title).withJSON("item",
+                                                                                                 item.toString()));
             logger.debug("createEntry: ... successful ...");
 
         } catch (Exception e) {
