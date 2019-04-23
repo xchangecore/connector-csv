@@ -4,6 +4,7 @@ maven-eclipse.xml
 .classpath
 .project
 .settings/
+.vscode/
 target/
 Logs/
 .idea/
