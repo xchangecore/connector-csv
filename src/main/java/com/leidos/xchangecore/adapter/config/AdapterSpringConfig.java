@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -33,6 +32,12 @@ public class AdapterSpringConfig {
     private static final String Key_hibernate_hbm2dll_auto = "hibernate.hbm2ddl.auto";
 
     private static Logger logger = LoggerFactory.getLogger(AdapterSpringConfig.class);
+
+    private static String S_AMAZON_ENDPOINT = "amazon.endpoint";
+    private static String S_AMAZON_REGION = "amazon.region";
+    private static String S_AWS_ACCESS_KEY_ID = "aws.access.key.id";
+    private static String S_AWS_SECRET_ACCESS_KEY = "aws.secret.access.key";
+    private static String S_DB_TABLE_NAME = "db.table.name";
 
     @Value("${jdbc.url}")
     private String jdbcUrl;
@@ -76,11 +81,16 @@ public class AdapterSpringConfig {
     public DynamoDBDao dynamoDBDao() {
 
         DynamoDBDao dynamoDBDao = new DynamoDBDao();
-        dynamoDBDao.init(System.getenv(aws_access_key_id),
-                         System.getenv(aws_secret_access_key),
-                         System.getenv(amazon_endpoint),
-                         System.getenv(amazon_region),
-                         System.getenv(db_table_name));
+        logger.debug("DynamoDBDao: endpoint: " + amazon_endpoint + ", region: " + amazon_region + ", key_id: "
+                + aws_access_key_id + ", key: " + aws_secret_access_key + ", tableName: " + db_table_name);
+        if (amazon_endpoint == null || amazon_endpoint.equals("${amazon.endpoint}")) {
+            aws_access_key_id = System.getenv(S_AWS_ACCESS_KEY_ID);
+            aws_secret_access_key = System.getenv(S_AWS_SECRET_ACCESS_KEY);
+            amazon_endpoint = System.getenv(S_AMAZON_ENDPOINT);
+            amazon_region = System.getenv(S_AMAZON_REGION);
+            db_table_name = System.getenv(S_DB_TABLE_NAME);
+        }
+        dynamoDBDao.init(aws_access_key_id, aws_secret_access_key, amazon_endpoint, amazon_region, db_table_name);
         return dynamoDBDao;
     }
 
