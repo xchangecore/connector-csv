@@ -21,7 +21,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.leidos.xchangecore</groupId>
     <packaging>war</packaging>
-    <version>0.1.1</version>
+    <version>0.2.0</version>
     <name>xcadapter</name>
     <artifactId>xcadapter</artifactId>
     <description>CSV Adapter</description>
@@ -256,6 +256,15 @@
             <artifactId>spring-security-config</artifactId>
             <version>${spring.security.version}</version>
         </dependency>
+
+
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-datastore</artifactId>
+            <version>1.62.0</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>

@@ -21,12 +21,21 @@ public class MappedRecordJson extends JSONObject {
      */
     private static final String S_Title = "title";
     private static final String S_MD5HASH = "md5hash";
-    private static final String S_SourceName = "xcadapter";
-    private static final String S_Source = "Source";
-    private static final String S_SourceHost = "SourceHost";
-    private static final String S_SourceURL = "SourceURL";
-    private static final String S_SourceContact = "SourceContact";
-    private static final String S_SourceEmail = "SourceEmail";
+
+    private static final String S_SourceHost = "Adapter Host";
+    private static final String S_SourceLocation = "Adapter Location";
+    private static final String S_SourceName = "Adapter Name";
+    private static final String S_SourceType = "Adapter Type";
+    private static final String S_SourceURL = "Data Source URL";
+    private static final String S_SourceContact = "Adapter Contact";
+    private static final String S_SourceEmail = "Adapter Contact Email";
+
+
+    private static final String AdapterName = "xcadapter";
+    private static final String AdapterType = "Java";
+    private static final String DataSourceURL = "CSV Upload";
+
+
     private static final String[] removeEntries = {
         "coreUri",
         "longitude",
@@ -40,8 +49,12 @@ public class MappedRecordJson extends JSONObject {
         setWhere(record.getLatitude(), record.getLongitude());
         this.put(S_Title, record.getTitle());
         this.put(S_MD5HASH, MappedRecord.GetHash(record.getIndex().getBytes()));
-        this.put(S_Source, S_SourceName);
         this.put(S_SourceHost, getHostname());
+        this.put(S_SourceLocation, AdapterName);
+
+
+        this.put(S_SourceName, AdapterName);
+        this.put(S_SourceType, AdapterType);
         // this.put(S_MD5HASH, getHash(record.getContent().getBytes()));
         clearUp();
     }
