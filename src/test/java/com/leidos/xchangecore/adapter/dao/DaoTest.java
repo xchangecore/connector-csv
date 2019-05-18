@@ -31,6 +31,7 @@ public class DaoTest {
         record.setIgID("Test-" + UUID.randomUUID());
         record.setCategory("category");
         record.setTitle("title");
+        record.setStatus("status");
         record.setContent("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm  nnnnnnnnnnnnnnn<nnn nnnnnnnnnnnnn    nnnnnnnnnnnnnnn>/!@#$%^&*()_+nnnn           nnnnnnnnnnnnnmmmmmmmmmmmmmmmmmmmmmmmmmmm");
         record.setIndex("indexKey");
         record.setCreator("creator");

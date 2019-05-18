@@ -106,6 +106,13 @@ public class CSVFileParser {
                 }
             }
 
+            // if the title.suffix specified, suffix it
+            if (configuration.getStatusSuffix() != null && configuration.getStatusSuffix().length() > 0) {
+                if (record.getStatus().equalsIgnoreCase("N/A") == false) {
+                    record.setStatus(record.getStatus() + configuration.getStatusSuffix());
+                }
+            }
+
             record.setCreator(configuration.getId());
             record.setLastUpdated(currentDate);
             record.setCoreUri(configuration.getUri());

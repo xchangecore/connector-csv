@@ -118,6 +118,8 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
             return record.getTitle();
         } else if (attributeName.equals(configuration.getFilter())) {
             return record.getFilter();
+        } else if (attributeName.equals(configuration.getStatus())) {
+            return record.getStatus();
         } else {
             return columnValues[columnIndex];
         }
@@ -130,6 +132,10 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
         if (record.getCategory().equals("N/A")) {
             record.setCategory(
                 getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_Category)));
+        }
+        if (record.getStatus().equals("N/A")) {
+            record.setCategory(
+                    getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_Status)));
         }
         if (record.getFilter().equals("N/A")) {
             record.setFilter(
@@ -161,6 +167,9 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
             }
             final boolean isDescription = Configuration.DefinedColumnNames[i].equalsIgnoreCase(Configuration.FN_Description);
             sb = new StringBuffer();
+            if (isDescription) {
+                sb.append("<![CDATA[<spotonresponse>");
+            }
             for (int j = 0; j < columnNames[i].length; j++) {
                 if (isDescription) {
                     sb.append("<br/>");
@@ -178,6 +187,9 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
                     sb.append(TokenSeparator);
                 }
             }
+            if (isDescription) {
+                sb.append("</spotonresponse>]]");
+            }
             value = sb.toString();
             if (isDescription == false) {
                 value = value.substring(0, value.lastIndexOf(TokenSeparator));
@@ -187,6 +199,8 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
                 record.setCategory(value);
             } else if (Configuration.DefinedColumnNames[i].equalsIgnoreCase(Configuration.FN_Title)) {
                 record.setTitle(value);
+            } else if (Configuration.DefinedColumnNames[i].equalsIgnoreCase(Configuration.FN_Status)) {
+                record.setStatus(value);
             } else if (Configuration.DefinedColumnNames[i].equalsIgnoreCase(Configuration.FN_FilterName)) {
                 record.setFilter(value);
             } else if (Configuration.DefinedColumnNames[i].equalsIgnoreCase(Configuration.FN_Description)) {
@@ -208,6 +222,8 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
             return record.getIndex();
         } else if (attributeName.equals(Configuration.FN_Category)) {
             return record.getCategory();
+        } else if (attributeName.equals(Configuration.FN_Status)) {
+            return record.getStatus();
         } else if (attributeName.equals(Configuration.FN_Description)) {
             return record.getDescription();
         } else {

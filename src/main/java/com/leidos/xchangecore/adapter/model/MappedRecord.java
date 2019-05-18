@@ -25,6 +25,9 @@ public class MappedRecord implements Serializable {
     @Column(columnDefinition = "VARCHAR(4096)")
     private String category = "N/A";
 
+    @Column(columnDefinition = "VARCHAR(4096)")
+    private String status = "N/A";
+
     @Column(columnDefinition = "VARCHAR(65536)")
     private String content = "N/A";
 
@@ -70,6 +73,14 @@ public class MappedRecord implements Serializable {
     public void setCategory(String category) {
 
         this.category = category;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getContent() {
@@ -236,6 +247,7 @@ public class MappedRecord implements Serializable {
         }
         sb.append("\n\tTitle: " + this.title);
         sb.append("\n\tCategory: " + this.category);
+        sb.append("\n\tStatus: " + this.status);
         sb.append("\n\tLat/Lon: " + this.latitude + "/" + this.longitude);
         sb.append("\n\tIndex Key: " + this.index);
         sb.append("\n\tFilter: " + this.filter);

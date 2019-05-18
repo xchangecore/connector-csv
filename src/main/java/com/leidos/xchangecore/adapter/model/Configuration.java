@@ -35,16 +35,20 @@ public class Configuration implements Serializable {
     public static final String FN_Password = "url.password";
     public static final String FN_RedirectUrl = "url.redirectUrl";
     public static final String urlPostfix = "/core/ws/services";
+    public static final String FN_Status = "status";
+    public static final String FN_StatusPrefix = "";
+    public static final String FN_StatusSuffix = "";
 
     public static final String[] DefinedColumnNames = new String[]{
-        FN_Title,
-        FN_Category,
-        FN_Latitude,
-        FN_Longitude,
-        FN_FilterName,
-        FN_Index,
-        FN_Description,
-        };
+            FN_Title,
+            FN_Category,
+            FN_Status,
+            FN_Latitude,
+            FN_Longitude,
+            FN_FilterName,
+            FN_Index,
+            FN_Description,
+    };
     /**
      *
      */
@@ -57,6 +61,9 @@ public class Configuration implements Serializable {
     private String titlePrefix = null;
     private String titleSuffix = null;
     private String category;
+    private String status;
+    private String statusPrefix = null;
+    private String statusSuffix = null;
     private String filter;
     private String filterText;
     private String distance = "";
@@ -136,6 +143,30 @@ public class Configuration implements Serializable {
     public String getDescription() {
 
         return this.description;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getStatusPrefix() {
+        return statusPrefix;
+    }
+
+    public void setStatusPrefix(String statusPrefix) {
+        this.statusPrefix = statusPrefix;
+    }
+
+    public String getStatusSuffix() {
+        return statusSuffix;
+    }
+
+    public void setStatusSuffix(String statusSuffix) {
+        this.statusSuffix = statusSuffix;
     }
 
     public void setDescription(String description) {
@@ -334,6 +365,8 @@ public class Configuration implements Serializable {
             return this.getTitle();
         } else if (key.equalsIgnoreCase(FN_Category)) {
             return this.getCategory();
+        } else if (key.equalsIgnoreCase(FN_Status)) {
+            return this.getStatus();
         } else if (key.equalsIgnoreCase(FN_Distance)) {
             return this.getDistance();
         } else if (key.equalsIgnoreCase(FN_DistanceFilterText)) {
@@ -385,6 +418,12 @@ public class Configuration implements Serializable {
             this.setTitlePrefix(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_TitleSuffix)) {
             this.setTitleSuffix(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_Status)) {
+            this.setStatus(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_StatusPrefix)) {
+            this.setStatusPrefix(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_StatusSuffix)) {
+            this.setStatusSuffix(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_Latitude)) {
             this.setLatitude(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_Longitude)) {
@@ -441,6 +480,9 @@ public class Configuration implements Serializable {
         if (this.getTitle() != null && this.getTitle().indexOf(".") == -1) {
             map.put(this.getTitle(), FN_Title);
         }
+        if (this.getStatus() != null && this.getStatus().indexOf(".") == -1) {
+            map.put(this.getStatus(), FN_Status);
+        }
         String column = null;
         if (this.getCategory() != null && this.getCategory().indexOf(".") == -1) {
 
@@ -494,6 +536,11 @@ public class Configuration implements Serializable {
         sb.append(FN_Category);
         sb.append(":\t");
         sb.append(getCategory());
+        sb.append("\n");
+
+        sb.append(FN_Status);
+        sb.append(":\t");
+        sb.append(getStatus());
         sb.append("\n");
 
         sb.append("\t");

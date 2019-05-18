@@ -21,6 +21,7 @@ public class MappedRecordJson extends JSONObject {
      */
     private static final String S_Title = "title";
     private static final String S_MD5HASH = "md5hash";
+    private static final String S_Status = "status";
 
     private static final String S_SourceHost = "Adapter Host";
     private static final String S_SourceLocation = "Adapter Location";
@@ -48,13 +49,16 @@ public class MappedRecordJson extends JSONObject {
         super(new GsonBuilder().setPrettyPrinting().create().toJson(record));
         setWhere(record.getLatitude(), record.getLongitude());
         this.put(S_Title, record.getTitle());
+        this.put(S_Status, record.getStatus());
         this.put(S_MD5HASH, MappedRecord.GetHash(record.getIndex().getBytes()));
         this.put(S_SourceHost, getHostname());
         this.put(S_SourceLocation, AdapterName);
-
+        this.put(S_SourceURL, DataSourceURL);
 
         this.put(S_SourceName, AdapterName);
         this.put(S_SourceType, AdapterType);
+
+
         // this.put(S_MD5HASH, getHash(record.getContent().getBytes()));
         clearUp();
     }
@@ -86,6 +90,10 @@ public class MappedRecordJson extends JSONObject {
 
     public String getTitle() {
         return (String) this.get(S_Title);
+    }
+
+    public String getStatus() {
+        return (String) this.get(S_Status);
     }
 
     public String getPrimaryKey() {
