@@ -1,13 +1,12 @@
 package com.leidos.xchangecore.adapter.util;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.TimeZone;
-
-import javax.xml.namespace.QName;
-
+import com.leidos.xchangecore.adapter.model.MappedRecord;
+import com.saic.precis.x2009.x06.base.AssociatedGroupsDocument.AssociatedGroups;
+import com.saic.precis.x2009.x06.base.IdentificationType;
+import com.saic.precis.x2009.x06.base.PropertiesType;
+import com.saic.precis.x2009.x06.structures.WorkProductDocument.WorkProduct;
+import com.vividsolutions.jts.geom.*;
+import gov.niem.niem.niemCore.x20.*;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.xmlbeans.SchemaType;
 import org.apache.xmlbeans.XmlException;
@@ -15,30 +14,12 @@ import org.apache.xmlbeans.XmlObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.leidos.xchangecore.adapter.model.MappedRecord;
-import com.saic.precis.x2009.x06.base.AssociatedGroupsDocument.AssociatedGroups;
-import com.saic.precis.x2009.x06.base.IdentificationType;
-import com.saic.precis.x2009.x06.base.PropertiesType;
-import com.saic.precis.x2009.x06.structures.WorkProductDocument.WorkProduct;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LinearRing;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-
-import gov.niem.niem.niemCore.x20.ActivityDateDocument;
-import gov.niem.niem.niemCore.x20.AreaType;
-import gov.niem.niem.niemCore.x20.CircularRegionType;
-import gov.niem.niem.niemCore.x20.DateTimeDocument;
-import gov.niem.niem.niemCore.x20.DateType;
-import gov.niem.niem.niemCore.x20.IncidentType;
-import gov.niem.niem.niemCore.x20.LatitudeCoordinateType;
-import gov.niem.niem.niemCore.x20.LengthMeasureType;
-import gov.niem.niem.niemCore.x20.LongitudeCoordinateType;
-import gov.niem.niem.niemCore.x20.MeasurePointValueDocument;
-import gov.niem.niem.niemCore.x20.StatusType;
-import gov.niem.niem.niemCore.x20.TextType;
-import gov.niem.niem.niemCore.x20.TwoDimensionalGeographicCoordinateType;
+import javax.xml.namespace.QName;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.TimeZone;
 
 public class Util {
 
@@ -296,7 +277,6 @@ public class Util {
     }
 
     private static String[] toDegMinSec(String decimal) {
-
         double d = Double.parseDouble(decimal);
         final int degrees = (int) d;
         d = Math.abs(d - degrees) * 60;

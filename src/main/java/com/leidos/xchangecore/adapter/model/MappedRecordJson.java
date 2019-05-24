@@ -3,9 +3,7 @@ package com.leidos.xchangecore.adapter.model;
 import com.google.gson.GsonBuilder;
 import org.json.JSONObject;
 
-import javax.xml.bind.DatatypeConverter;
 import java.net.InetAddress;
-import java.security.MessageDigest;
 import java.util.AbstractMap;
 import java.util.Map;
 
@@ -38,10 +36,11 @@ public class MappedRecordJson extends JSONObject {
 
 
     private static final String[] removeEntries = {
-        "coreUri",
+            "content",
+            "coreUri",
         "longitude",
         "latitude",
-        "workProductID",
+            "workProductID"
     };
 
     public MappedRecordJson(MappedRecord record) {
