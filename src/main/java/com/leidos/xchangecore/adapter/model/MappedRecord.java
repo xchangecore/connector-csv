@@ -1,5 +1,7 @@
 package com.leidos.xchangecore.adapter.model;
 
+import org.json.JSONObject;
+
 import javax.persistence.*;
 import javax.xml.bind.DatatypeConverter;
 import java.io.Serializable;
@@ -51,6 +53,11 @@ public class MappedRecord implements Serializable {
 
     private Date lastUpdated;
 
+
+    @Transient
+    private JSONObject otherColumns = new JSONObject();
+
+
     public static String GetHash(byte[] bytes) {
 
         MessageDigest md5hash = null;
@@ -63,6 +70,15 @@ public class MappedRecord implements Serializable {
         md5hash.update(bytes);
         byte[] digest = md5hash.digest();
         return DatatypeConverter.printHexBinary(digest).toUpperCase();
+    }
+
+
+    public JSONObject getOtherColumns() {
+        return otherColumns;
+    }
+
+    public void put(String key, String value) {
+        otherColumns.put(key, value);
     }
 
     public String getCategory() {
@@ -220,7 +236,7 @@ public class MappedRecord implements Serializable {
 
     public String getTitle() {
 
-        return this.title;
+        return this.title.replace("~@~", " ");
     }
 
     public void setTitle(String title) {
