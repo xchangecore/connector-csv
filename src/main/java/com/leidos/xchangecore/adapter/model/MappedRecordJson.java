@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import java.net.InetAddress;
 import java.util.AbstractMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class MappedRecordJson extends JSONObject {
@@ -38,14 +39,14 @@ public class MappedRecordJson extends JSONObject {
     private static final String[] removeEntries = {
             "content",
             "coreUri",
-        "longitude",
-        "latitude",
-            "workProductID"
+            "otherColumns",
+            "description"
     };
 
     public MappedRecordJson(MappedRecord record) {
 
         super(new GsonBuilder().setPrettyPrinting().create().toJson(record));
+
         setWhere(record.getLatitude(), record.getLongitude());
         this.put(S_Title, record.getTitle());
         this.put(S_Status, record.getStatus());
@@ -58,6 +59,12 @@ public class MappedRecordJson extends JSONObject {
         this.put(S_SourceType, AdapterType);
 
 
+        // Add otherFields
+        Iterator<String> keys = record.getOtherColumns().keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            this.put(key, record.getOtherColumns().get(key));
+        }
         // this.put(S_MD5HASH, getHash(record.getContent().getBytes()));
         clearUp();
     }

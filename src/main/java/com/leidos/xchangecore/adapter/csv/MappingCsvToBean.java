@@ -177,6 +177,15 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
                     sb.append(Configuration.getMappingColumn(columnNames[i][j]) + ": ");
                     sb.append("</b>");
                     sb.append(getRecordValue(record, configuration, columnNames[i][j], columns, columnIndexes[i][j]));
+
+                    String val = getRecordValue(record, configuration, columnNames[i][j], columns, columnIndexes[i][j]);
+                    if (val.length() < 1) {
+                        val = "N/A";
+                    }
+
+                    record.put(Configuration.getMappingColumn(columnNames[i][j]), val);
+
+
                 } else {
                     if (columnNames[i][j] == null) {
                         sb.append("N/A");
@@ -186,7 +195,10 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
                     }
                     sb.append(TokenSeparator);
                 }
+
             }
+
+
             if (isDescription) {
                 sb.append("</spotonresponse>]]");
             }
@@ -217,7 +229,7 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
         if (attributeName == null) {
             return "N/A";
         } else if (attributeName.equals(Configuration.FN_Title)) {
-            return record.getTitle();
+            return record.getTitle().replace("~@~", " ");
         } else if (attributeName.equals(Configuration.FN_Index)) {
             return record.getIndex();
         } else if (attributeName.equals(Configuration.FN_Category)) {
