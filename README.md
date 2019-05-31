@@ -1,5 +1,7 @@
-Initial check-in for csv adapter.
-
+2019-05-30:
+    - version 0.2.2
+        - Add title.prefix.column and concatenate.char
+    
 2018-02-24:
     - Correct the proper behavior when the auto.close set to false
 
@@ -28,7 +30,7 @@ Initial check-in for csv adapter.
 2017-04-18:
 - Check-in the xcadapter.war
 
-2016-12-08:
+2016-12-08: Initial check-in for csv adapter.
 - to add the multiple configuration sections within a configuration file.
 - to add 'auto.close' support for deletion.
 - to add sample_config as the example for the config.

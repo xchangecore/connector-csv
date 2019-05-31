@@ -15,7 +15,9 @@ public class Configuration implements Serializable {
     public static final String FN_Longitude = "longitude";
     public static final String FN_Title = "title";
     public static final String FN_TitlePrefix = "title.prefix";
+    public static final String FN_TitlePrefixColumn = "title.prefix.column";
     public static final String FN_TitleSuffix = "title.suffix";
+    public static final String FN_TitleSuffixColumn = "title.suffix.column";
     public static final String FN_Category = "category";
     public static final String FN_CategoryPrefix = "category.prefix";
     public static final String FN_CategorySuffix = "category.suffix";
@@ -59,7 +61,9 @@ public class Configuration implements Serializable {
     private String id;
     private String title;
     private String titlePrefix = null;
+    private String titlePrefixColumn = null;
     private String titleSuffix = null;
+    private String titleSuffixColumn = null;
     private String category;
     private String status;
     private String statusPrefix = null;
@@ -416,8 +420,12 @@ public class Configuration implements Serializable {
             this.setTitle(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_TitlePrefix)) {
             this.setTitlePrefix(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_TitlePrefixColumn)) {
+            this.setTitlePrefixColumn(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_TitleSuffix)) {
             this.setTitleSuffix(keyAndValue[1]);
+        } else if (keyAndValue[0].equalsIgnoreCase(FN_TitleSuffixColumn)) {
+            this.setTitleSuffixColumn(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_Status)) {
             this.setStatus(keyAndValue[1]);
         } else if (keyAndValue[0].equalsIgnoreCase(FN_StatusPrefix)) {
@@ -593,5 +601,21 @@ public class Configuration implements Serializable {
         errorMessage = errorMessage.substring(0, errorMessage.lastIndexOf(", "));
 
         return "Missing Attribute: [ " + errorMessage + " ]";
+    }
+
+    public String getTitlePrefixColumn() {
+        return titlePrefixColumn;
+    }
+
+    public void setTitlePrefixColumn(String titlePrefixColumn) {
+        this.titlePrefixColumn = titlePrefixColumn;
+    }
+
+    public String getTitleSuffixColumn() {
+        return titleSuffixColumn;
+    }
+
+    public void setTitleSuffixColumn(String titleSuffixColumn) {
+        this.titleSuffixColumn = titleSuffixColumn;
     }
 }

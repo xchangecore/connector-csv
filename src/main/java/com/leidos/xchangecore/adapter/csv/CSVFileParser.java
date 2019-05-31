@@ -34,8 +34,8 @@ public class CSVFileParser {
     }
 
     /*
-     * This method will read in the csv file and concatenate the base file if existed
-     * Then pass it with the configuration map
+     * This method will read in the csv file and concatenate the base file if
+     * existed Then pass it with the configuration map
      */
     public CSVFileParser(File file, InputStream baseInputStream, Configuration configuration) throws Throwable {
 
@@ -67,7 +67,7 @@ public class CSVFileParser {
         for (MappedRecord record : parsedRecords) {
             if (indexSet.contains(record.getIndex())) {
                 errorList += new String(
-                    "Duplicate Index: " + record.getIndex() + ", Context: " + record.getContent() + "\n");
+                        "Duplicate Index: " + record.getIndex() + ", Context: " + record.getContent() + "\n");
                 continue;
             }
 
@@ -99,10 +99,32 @@ public class CSVFileParser {
                 }
             }
 
+            // if the title.prefix.column defined and use it
+            if (configuration.getTitlePrefixColumn() != null && configuration.getTitlePrefixColumn().length() > 0) {
+                if (record.getTitle().equalsIgnoreCase("N/A") == false) {
+                    String titlePrefixColumn = configuration.getTitlePrefixColumn();
+                    String[] tokens = configuration.getTitlePrefixColumn().split(" ");
+                    String titlePrefix = getValue(tokens[0], record);
+                    titlePrefix = titlePrefixColumn.replaceAll(tokens[0], titlePrefix);
+                    record.setTitle(titlePrefix + record.getTitle());
+                }
+            }
+
             // if the title.suffix specified, suffix it
             if (configuration.getTitleSuffix() != null && configuration.getTitleSuffix().length() > 0) {
                 if (record.getTitle().equalsIgnoreCase("N/A") == false) {
                     record.setTitle(record.getTitle() + configuration.getTitleSuffix());
+                }
+            }
+
+            // if the title.suffix.column specified, suffix it
+            if (configuration.getTitleSuffixColumn() != null && configuration.getTitleSuffixColumn().length() > 0) {
+                if (record.getTitle().equalsIgnoreCase("N/A") == false) {
+                    String titleSuffixColumn = configuration.getTitleSuffixColumn();
+                    String[] tokens = configuration.getTitleSuffixColumn().split(" ");
+                    String titleSuffix = getValue(tokens[tokens.length - 1], record);
+                    titleSuffix = titleSuffixColumn.replaceAll(tokens[tokens.length - 1], titleSuffix);
+                    record.setTitle(record.getTitle() + titleSuffix);
                 }
             }
 
@@ -128,6 +150,23 @@ public class CSVFileParser {
 
         if (baseInputStream != null) {
             csvFile.delete();
+        }
+    }
+
+    private String getValue(String columnName, MappedRecord record) {
+
+        if (columnName.equalsIgnoreCase(Configuration.FN_Status)) {
+            return record.getStatus();
+        } else if (columnName.equalsIgnoreCase(Configuration.FN_Category)) {
+            return record.getCategory();
+        } else if (columnName.equalsIgnoreCase(Configuration.FN_Index)) {
+            return record.getIndex();
+        } else if (columnName.equalsIgnoreCase(Configuration.FN_Latitude)) {
+            return record.getLatitude();
+        } else if (columnName.equalsIgnoreCase(Configuration.FN_Longitude)) {
+            return record.getLongitude();
+        } else {
+            return columnName;
         }
     }
 
@@ -174,10 +213,10 @@ public class CSVFileParser {
             }
         }
         /*
-         * Earth’s radius, sphere R=6378137
-         * offsets in meters dn = 100 de = 100
+         * Earth’s radius, sphere R=6378137 offsets in meters dn = 100 de = 100
          * Coordinate offsets in radians dLat = dn/R dLon =de/(R*Cos(Pi*lat/180))
-         * OffsetPosition, decimal degrees latO = lat + dLat * 180/Pi lonO = lon + dLon * 180/Pi
+         * OffsetPosition, decimal degrees latO = lat + dLat * 180/Pi lonO = lon + dLon
+         * * 180/Pi
          */
         double d = distance * 1000.0;
         double deltaLat = d / Radius * 180 / Pi;
@@ -296,8 +335,7 @@ public class CSVFileParser {
             writer.flush();
             writer.close();
             return temp;
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } finally {
@@ -308,8 +346,7 @@ public class CSVFileParser {
                 if (indexedReader != null) {
                     indexedReader.close();
                 }
-            }
-            catch (Throwable e) {
+            } catch (Throwable e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -406,8 +443,8 @@ public class CSVFileParser {
                             logger.debug("Auto.Close=FALSE key: " + key + " in-core but not in the filter record");
                             deleteRecords.put(key, inCoreSet.get(key));
                         } else {
-                            logger.debug(
-                                "Auto.Close=FALSE key: " + key + " not in current csv upload. No Action " + "Taken");
+                            logger.debug("Auto.Close=FALSE key: " + key + " not in current csv upload. No Action "
+                                    + "Taken");
                         }
                     }
                 }
@@ -420,7 +457,8 @@ public class CSVFileParser {
         logger.debug("records need to be deleted: " + deleteRecords.size());
     }
 
-    private void validateConfiguration(Configuration csvConfiguration, MappingHeaderColumnNameTranslateMappingStrategy strategy, CSVReader csvReader) throws Throwable {
+    private void validateConfiguration(Configuration csvConfiguration,
+            MappingHeaderColumnNameTranslateMappingStrategy strategy, CSVReader csvReader) throws Throwable {
 
         strategy.captureHeader(csvReader);
 
@@ -428,7 +466,8 @@ public class CSVFileParser {
             String column = csvConfiguration.getFieldValue(columnName);
             // if the attribute is Description
             if (columnName.equals(Configuration.FN_Description)) {
-                // if the full.description is set then collect all the fields to build the description
+                // if the full.description is set then collect all the fields to build the
+                // description
                 if (csvConfiguration.isFullDescription()) {
                     StringBuffer sb = new StringBuffer();
                     for (String cName : strategy.getHeaders()) {
@@ -470,10 +509,7 @@ public class CSVFileParser {
         for (int i = 0; i < indexHeaders.length; i++) {
             for (int j = 0; j < baseHeaders.length; j++) {
                 if (indexHeaders[i].equalsIgnoreCase(baseHeaders[j])) {
-                    return new int[]{
-                        i,
-                        j
-                    };
+                    return new int[] { i, j };
                 }
             }
         }
