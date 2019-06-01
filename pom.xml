@@ -21,7 +21,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.leidos.xchangecore</groupId>
     <packaging>war</packaging>
-    <version>0.2.2</version>
+    <version>0.2.3</version>
     <name>xcadapter</name>
     <artifactId>xcadapter</artifactId>
     <description>CSV Adapter</description>

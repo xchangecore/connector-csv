@@ -106,6 +106,13 @@ public class CSVFileParser {
                     String[] tokens = configuration.getTitlePrefixColumn().split(" ");
                     String titlePrefix = getValue(tokens[0], record);
                     titlePrefix = titlePrefixColumn.replaceAll(tokens[0], titlePrefix);
+
+                    // Hack to remove the Title prefix is the status is open
+                    // not sure how else to do this...
+                    if (titlePrefix.toLowerCase().startsWith("open")) {
+                        titlePrefix = "";
+                    }
+
                     record.setTitle(titlePrefix + record.getTitle());
                 }
             }
