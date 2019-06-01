@@ -416,9 +416,7 @@ public class CSVFileParser {
             // saved in XchangeCore already
             Map<String, MappedRecord> inCoreSet = new HashMap<String, MappedRecord>();
             for (MappedRecord r : existedRecordList) {
-                if (r.getIgID() != null) {
-                    inCoreSet.put(r.getIndex(), r);
-                }
+                inCoreSet.put(r.getIndex(), r);
             }
             logger.debug("records in Core: " + inCoreSet.size());
 
