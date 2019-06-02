@@ -106,13 +106,6 @@ public class CSVFileParser {
                     String[] tokens = configuration.getTitlePrefixColumn().split(" ");
                     String titlePrefix = getValue(tokens[0], record);
                     titlePrefix = titlePrefixColumn.replaceAll(tokens[0], titlePrefix);
-
-                    // Hack to remove the Title prefix is the status is open
-                    // not sure how else to do this...
-                    if (titlePrefix.toLowerCase().startsWith("open")) {
-                        titlePrefix = "";
-                    }
-
                     record.setTitle(titlePrefix + record.getTitle());
                 }
             }
@@ -434,8 +427,11 @@ public class CSVFileParser {
                     if (inCoreSet.get(key).getContent().equalsIgnoreCase(record.getContent()) == false) {
                         record.setWorkProductID(inCoreSet.get(key).getWorkProductID());
                         logger.debug("for update: WPID: " + record.getWorkProductID());
-                        updateRecords.put(key, record);
-                    } else {
+                        // updateRecords.put(key, record);
+                        // for NoSQL instead of put the recored into UpdateRecords
+                        // we will put old one into deleteRecords and new one into newRecords
+                        newRecords.put(key, record);
+                        deleteRecords.put(key, inCoreSet.get(key));
                     }
                 } else {
                     // logger.debug("IGID: " + key + " existed ... Auto.Close: "
