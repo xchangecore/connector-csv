@@ -106,6 +106,10 @@ public class CSVFileParser {
                     String[] tokens = configuration.getTitlePrefixColumn().split(" ");
                     String titlePrefix = getValue(tokens[0], record);
                     titlePrefix = titlePrefixColumn.replaceAll(tokens[0], titlePrefix);
+
+                    if (titlePrefix.toLowerCase().startsWith("open")) {
+                        titlePrefix = "";
+                    }
                     record.setTitle(titlePrefix + record.getTitle());
                 }
             }
