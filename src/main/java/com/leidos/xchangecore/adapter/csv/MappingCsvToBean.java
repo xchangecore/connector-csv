@@ -68,6 +68,15 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
         this.autoClose = autoClose;
     }
 
+    private boolean isEmptyLine(String[] columns) {
+
+        for (String column : columns)
+            if (column.trim().length() > 0)
+                return false;
+
+        return true;
+    }
+
     @Override
     public List<MappedRecord> parse(MappingStrategy<MappedRecord> mapper, CSVReader csvReader) {
 
@@ -79,27 +88,28 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
             String[] columns;
             List<MappedRecord> list = new ArrayList<MappedRecord>();
             while (null != (columns = csvReader.readNext())) {
+                if (isEmptyLine(columns))
+                    continue;
                 MappedRecord bean = processLine(mapper, columns);
                 postProcessing(bean, columns);
                 list.add(bean);
             }
             return list;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error parsing CSV!" + e.getMessage());
         }
     }
 
     @Override
-    protected Object convertValue(String value, PropertyDescriptor prop) throws InstantiationException, IllegalAccessException {
+    protected Object convertValue(String value, PropertyDescriptor prop)
+            throws InstantiationException, IllegalAccessException {
 
         PropertyEditor editor = getPropertyEditor(prop);
         Object obj = value;
         if (null != editor) {
             try {
                 editor.setAsText(value);
-            }
-            catch (NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 logger.warn("Value: [" + value + "]: " + e.getMessage());
                 editor.setAsText("0");
             }
@@ -108,7 +118,8 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
         return obj;
     }
 
-    private String getRecordValue(MappedRecord record, Configuration configuration, String attributeName, String[] columnValues, Integer columnIndex) {
+    private String getRecordValue(MappedRecord record, Configuration configuration, String attributeName,
+            String[] columnValues, Integer columnIndex) {
 
         if (attributeName.equals(configuration.getDescription())) {
             return record.getDescription();
@@ -131,7 +142,7 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
         // fill the empty fields
         if (record.getCategory().equals("N/A")) {
             record.setCategory(
-                getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_Category)));
+                    getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_Category)));
         }
         if (record.getStatus().equals("N/A")) {
             record.setCategory(
@@ -139,15 +150,15 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
         }
         if (record.getFilter().equals("N/A")) {
             record.setFilter(
-                getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_FilterName)));
+                    getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_FilterName)));
         }
         if (record.getIndex().equals("N/A")) {
             record.setIndex(
-                getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_Index)));
+                    getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_Index)));
         }
         if (record.getDescription().equals("N/A")) {
             record.setDescription(
-                getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_Description)));
+                    getAttributeValue(record, configuration.getDuplicateAttributeValue(Configuration.FN_Description)));
         }
 
         // figure out the content which is the whole row of data
@@ -165,7 +176,8 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
             if (columnNames[i] == null || columnNames[i].length == 1) {
                 continue;
             }
-            final boolean isDescription = Configuration.DefinedColumnNames[i].equalsIgnoreCase(Configuration.FN_Description);
+            final boolean isDescription = Configuration.DefinedColumnNames[i]
+                    .equalsIgnoreCase(Configuration.FN_Description);
             sb = new StringBuffer();
             if (isDescription) {
                 sb.append("<![CDATA[<spotonresponse>");
@@ -185,19 +197,17 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
 
                     record.put(Configuration.getMappingColumn(columnNames[i][j]), val);
 
-
                 } else {
                     if (columnNames[i][j] == null) {
                         sb.append("N/A");
                     } else {
                         sb.append(
-                            getRecordValue(record, configuration, columnNames[i][j], columns, columnIndexes[i][j]));
+                                getRecordValue(record, configuration, columnNames[i][j], columns, columnIndexes[i][j]));
                     }
                     sb.append(TokenSeparator);
                 }
 
             }
-
 
             if (isDescription) {
                 sb.append("</spotonresponse>]]");
@@ -221,7 +231,8 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
                 record.setIndex(value);
             }
         }
-        // logger.debug("+++++++++++++++++++\npostProcessing:\n" + record + "\n+++++++++++++++++++++++++++++");
+        // logger.debug("+++++++++++++++++++\npostProcessing:\n" + record +
+        // "\n+++++++++++++++++++++++++++++");
     }
 
     private String getAttributeValue(MappedRecord record, String attributeName) {

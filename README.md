@@ -1,3 +1,8 @@
+2019-08-18:
+    - version 0.2.3
+        - Modified to ignore the empty line in the input csv file
+        - Not to throw exception when the Description column definition is not existed.
+        
 2019-05-30:
     - version 0.2.2
         - Add title.prefix.column and concatenate.char

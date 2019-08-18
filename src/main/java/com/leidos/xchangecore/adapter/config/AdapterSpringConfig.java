@@ -85,27 +85,26 @@ public class AdapterSpringConfig {
 
         String DynamoDbUUID = "b4f7738a-4616-46df-bd74-ef082d07feb2";
         /*
-        logger.debug("DynamoDBDao: endpoint: " + amazon_endpoint + ", region: " + amazon_region + ", key_id: "
-                + aws_access_key_id + ", key: " + aws_secret_access_key + ", tableName: " + db_table_name);
-        if (amazon_endpoint == null || amazon_endpoint.equals("${amazon.endpoint}")) {
-            aws_access_key_id = System.getenv(S_AWS_ACCESS_KEY_ID);
-            aws_secret_access_key = System.getenv(S_AWS_SECRET_ACCESS_KEY);
-            amazon_endpoint = System.getenv(S_AMAZON_ENDPOINT);
-            amazon_region = System.getenv(S_AMAZON_REGION);
-            db_table_name = System.getenv(S_DB_TABLE_NAME);
-        }
+         * logger.debug("DynamoDBDao: endpoint: " + amazon_endpoint + ", region: " +
+         * amazon_region + ", key_id: " + aws_access_key_id + ", key: " +
+         * aws_secret_access_key + ", tableName: " + db_table_name); if (amazon_endpoint
+         * == null || amazon_endpoint.equals("${amazon.endpoint}")) { aws_access_key_id
+         * = System.getenv(S_AWS_ACCESS_KEY_ID); aws_secret_access_key =
+         * System.getenv(S_AWS_SECRET_ACCESS_KEY); amazon_endpoint =
+         * System.getenv(S_AMAZON_ENDPOINT); amazon_region =
+         * System.getenv(S_AMAZON_REGION); db_table_name =
+         * System.getenv(S_DB_TABLE_NAME); }
+         * 
+         */
 
-        */
-
+        try {
             Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
-            Query<Entity> query = Query.newEntityQueryBuilder()
-                    .setKind("Credentials")
-                    .setFilter(StructuredQuery.PropertyFilter.eq("UUID", DynamoDbUUID))
-                    .build();
+            Query<Entity> query = Query.newEntityQueryBuilder().setKind("Credentials")
+                    .setFilter(StructuredQuery.PropertyFilter.eq("UUID", DynamoDbUUID)).build();
 
             QueryResults<Entity> results = datastore.run(query);
             Entity entity = results.next();
-            aws_access_key_id  = entity.getString("username");
+            aws_access_key_id = entity.getString("username");
             aws_secret_access_key = entity.getString("password");
             amazon_endpoint = entity.getString("Endpoint");
             amazon_region = entity.getString("Region");
@@ -113,8 +112,10 @@ public class AdapterSpringConfig {
 
             logger.info("**************Got aws_key: " + aws_access_key_id);
 
-
-        dynamoDBDao.init(aws_access_key_id, aws_secret_access_key, amazon_endpoint, amazon_region, db_table_name);
+            dynamoDBDao.init(aws_access_key_id, aws_secret_access_key, amazon_endpoint, amazon_region, db_table_name);
+        } catch (Exception e) {
+            logger.error("Error: Create DynamoDBDao: " + e.getMessage());
+        }
         return dynamoDBDao;
     }
 

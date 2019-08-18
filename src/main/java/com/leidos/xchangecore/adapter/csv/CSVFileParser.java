@@ -502,8 +502,9 @@ public class CSVFileParser {
                 }
                 // if the column is not specified in configuration file, it's
                 // valid
+
                 if (!found) {
-                    throw new Exception("Attribute: " + column + ", header doesn't contain [" + c + "]");
+                    logger.warn("Column: " + c + " is not defined in CVS file");
                 }
             }
         }
