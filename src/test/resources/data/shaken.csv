@@ -1,0 +1,5 @@
+Name,What,Description,Status,Reopening Date,Status Comments,Address,City,State,County,Phone,Email,Store ID,Manager Name,Latitude,Longitude,Damage to Facility,Problem with Employee Availability,Problem with Utilities,Using Generator,Problem with Customers Getting to Store,Problem with Financial Transactions,Problem with Supply of Commodities,Created By,Submit Date,Adapter Name,Adapter Location,Data Source,Icon,Priority Needs
+
+7-Eleven,CONVENIENCE,Stand alone convenience store with gas,closed,5/31/2019,No significant damages,3160 Morganford Rd, Saint Louis,MO,, (314) 664-8166,,10288,John,38.6022072,-90.261322,None,Employees,Utilities,Generator,Customers,Money,Supplies,,,,,Direct,,
+
+BP Oil,FUEL,Gas Station,closed,6/6/2019,Tanks need to be checked,4700 Bircher Blvd,Saint Louis,MO,, ,BP2091@bp.com,10290,Jill,38.681942,-90.2374496,Investigating,Employees,Utilities,Generator,Customers,Money,Supplies,,,,,Proxy: Hughes,,

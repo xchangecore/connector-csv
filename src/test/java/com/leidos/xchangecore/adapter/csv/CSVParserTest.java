@@ -14,15 +14,13 @@ import java.io.File;
 import java.io.FileInputStream;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {
-    "classpath:contexts/applicationContext.xml"
-})
+@ContextConfiguration(locations = { "classpath:contexts/applicationContext.xml" })
 public class CSVParserTest {
 
     private void processingCSV(final String configFilename, final String cvsFilename, final String baseFilename) {
 
-        System.err.println(
-            "\n>>>>>>>>>>\n\tConfiguration:\t" + configFilename + "\n\tCSV File:\t\t" + cvsFilename + "\n<<<<<<<<<<");
+        System.err.println("\n>>>>>>>>>>\n\tConfiguration:\t" + configFilename + "\n\tCSV File:\t\t" + cvsFilename
+                + "\n<<<<<<<<<<");
         try {
             // create the csv data file
             final File csvFile = new File(cvsFilename);
@@ -71,17 +69,18 @@ public class CSVParserTest {
             if (csvFileParser.getErrorList().length() > 0) {
                 String[] eMessages = csvFileParser.getErrorList().split("\n", -1);
                 for (String e : eMessages) {
-                    if (e.length() > 0) { System.err.println(e); }
+                    if (e.length() > 0) {
+                        System.err.println(e);
+                    }
                 }
             }
             System.err.println(
-                "=======================================================================================================================");
+                    "=======================================================================================================================");
             return;
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             System.err.println(">>>>>>>>>>\nError: " + e.getMessage() + "\n<<<<<<<<<<");
             System.err.println(
-                "=======================================================================================================================");
+                    "=======================================================================================================================");
             return;
         }
     }
@@ -91,18 +90,21 @@ public class CSVParserTest {
 
         // test the empty entries
         processingCSV("src/test/resources/config/testDuplicateAttribute.config",
-                      "src/test/resources/data/test-empty.csv", null);
+                "src/test/resources/data/test-empty.csv", null);
 
         // test duplicate index using the same column
         processingCSV("src/test/resources/config/testDuplicateIndex.config", "src/test/resources/data/test.csv", null);
 
         // test duplicate attributes using the same column
         processingCSV("src/test/resources/config/testDuplicateAttribute.config", "src/test/resources/data/test.csv",
-                      null);
+                null);
 
         // test the missing required attributes
         processingCSV("src/test/resources/config/testMissingAttribute.config", "src/test/resources/data/test.csv",
-                      null);
+                null);
+
+        // Shaken
+        processingCSV("src/main/webapp/config/shaken.config", "src/test/resources/data/shaken.csv", null);
 
         // CVS
         processingCSV("src/main/webapp/config/cvs.config", "src/test/resources/data/cvs.csv", null);
@@ -120,10 +122,12 @@ public class CSVParserTest {
         processingCSV("src/main/webapp/config/pgne.config", "src/test/resources/data/pgne.csv", null);
 
         // Walgreens
-        // processingCSV("src/main/webapp/config/walgreen.config", "src/test/resources/data/WalgreenStatus-org.csv",
+        // processingCSV("src/main/webapp/config/walgreen.config",
+        // "src/test/resources/data/WalgreenStatus-org.csv",
         // "src/main/webapp/config/walgreen.csv");
 
-        // processingCSV("src/main/webapp/config/walgreen.config", "src/test/resources/data/a.Walgreen.csv",
+        // processingCSV("src/main/webapp/config/walgreen.config",
+        // "src/test/resources/data/a.Walgreen.csv",
         // "src/main/webapp/config/walgreen.csv");
 
         // Walmart

@@ -1,3 +1,7 @@
+2019-09-01:
+    - version:  0.2.4
+        - Modified to return 'N/A' when the required column is not appeared in the upload CSV file.
+        - The missing column name can be reviewed in the xcadapter log file.
 2019-08-18:
     - version 0.2.3
         - Modified to ignore the empty line in the input csv file

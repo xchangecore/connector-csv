@@ -121,7 +121,9 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
     private String getRecordValue(MappedRecord record, Configuration configuration, String attributeName,
             String[] columnValues, Integer columnIndex) {
 
-        if (attributeName.equals(configuration.getDescription())) {
+        if (attributeName == null || columnIndex == null) {
+            return "N/A";
+        } else if (attributeName.equals(configuration.getDescription())) {
             return record.getDescription();
         } else if (attributeName.equals(configuration.getCategory())) {
             return record.getCategory();
@@ -188,22 +190,13 @@ public class MappingCsvToBean extends CsvToBean<MappedRecord> {
                     sb.append("<b>");
                     sb.append(Configuration.getMappingColumn(columnNames[i][j]) + ": ");
                     sb.append("</b>");
-                    sb.append(getRecordValue(record, configuration, columnNames[i][j], columns, columnIndexes[i][j]));
 
                     String val = getRecordValue(record, configuration, columnNames[i][j], columns, columnIndexes[i][j]);
-                    if (val.length() < 1) {
-                        val = "N/A";
-                    }
-
+                    sb.append(val);
                     record.put(Configuration.getMappingColumn(columnNames[i][j]), val);
 
                 } else {
-                    if (columnNames[i][j] == null) {
-                        sb.append("N/A");
-                    } else {
-                        sb.append(
-                                getRecordValue(record, configuration, columnNames[i][j], columns, columnIndexes[i][j]));
-                    }
+                    sb.append(getRecordValue(record, configuration, columnNames[i][j], columns, columnIndexes[i][j]));
                     sb.append(TokenSeparator);
                 }
 
