@@ -35,6 +35,9 @@ public class MappedRecordJson extends JSONObject {
     private static final String AdapterType = "Java";
     private static final String DataSourceURL = "CSV Upload";
 
+    private static final String S_Index = "index";
+    private static final String S_Creator = "creator";
+
 
     private static final String[] removeEntries = {
             "content",
@@ -50,6 +53,8 @@ public class MappedRecordJson extends JSONObject {
         setWhere(record.getLatitude(), record.getLongitude());
         this.put(S_Title, record.getTitle());
         this.put(S_Status, record.getStatus());
+        this.put(S_Index, record.getIndex());
+
         this.put(S_MD5HASH, MappedRecord.GetHash(record.getIndex().getBytes()));
         this.put(S_SourceHost, getHostname());
         this.put(S_SourceLocation, AdapterName);
@@ -63,9 +68,12 @@ public class MappedRecordJson extends JSONObject {
         Iterator<String> keys = record.getOtherColumns().keys();
         while (keys.hasNext()) {
             String key = keys.next();
-            this.put(key, record.getOtherColumns().get(key));
+
+            // Make sure the field is not empty (DynamoDB does not allow blank AttributeValues
+            if (!record.getOtherColumns().get(key).toString().isEmpty()) {
+                this.put(key, record.getOtherColumns().get(key));
+            }
         }
-        // this.put(S_MD5HASH, getHash(record.getContent().getBytes()));
         clearUp();
     }
 
@@ -100,6 +108,14 @@ public class MappedRecordJson extends JSONObject {
 
     public String getStatus() {
         return (String) this.get(S_Status);
+    }
+
+    public String getIndex() {
+        return (String) this.get(S_Index);
+    }
+
+    public String getCreator() {
+        return (String) this.get(S_Creator);
     }
 
     public String getPrimaryKey() {

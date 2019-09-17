@@ -102,7 +102,7 @@ public class DynamoDBDao {
 
         // Get the values for the indexes (keys)
         String md5hash = item.getPrimaryKey();
-        String title = item.getTitle();
+        String title = item.getCreator();
 
         try {
             logger.debug("createEntry: Title: [" + title + "] & MD5hash: [" + md5hash + "] & item: [" + item.toString() + "]");
