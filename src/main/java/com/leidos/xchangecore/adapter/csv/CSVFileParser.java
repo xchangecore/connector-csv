@@ -106,10 +106,6 @@ public class CSVFileParser {
                     String[] tokens = configuration.getTitlePrefixColumn().split(" ");
                     String titlePrefix = getValue(tokens[0], record);
                     titlePrefix = titlePrefixColumn.replaceAll(tokens[0], titlePrefix);
-
-                    if (titlePrefix.toLowerCase().startsWith("open")) {
-                        titlePrefix = "";
-                    }
                     record.setTitle(titlePrefix + record.getTitle());
                 }
             }
@@ -502,9 +498,8 @@ public class CSVFileParser {
                 }
                 // if the column is not specified in configuration file, it's
                 // valid
-
                 if (!found) {
-                    logger.warn("Column: " + c + " is not defined in CVS file");
+                    throw new Exception("Attribute: " + column + ", header doesn't contain [" + c + "]");
                 }
             }
         }

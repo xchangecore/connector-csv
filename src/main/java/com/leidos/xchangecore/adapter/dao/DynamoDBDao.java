@@ -105,7 +105,7 @@ public class DynamoDBDao {
         String title = item.getTitle();
 
         try {
-            logger.debug("createEntry: Title: [" + title + "] & MD5hash: [" + md5hash + "]");
+            logger.debug("createEntry: Title: [" + title + "] & MD5hash: [" + md5hash + "] & item: [" + item.toString() + "]");
             table.putItem(
                     new Item().withPrimaryKey("md5hash", md5hash, "title", title).withJSON("item", item.toString()));
             logger.debug("createEntry: ... successful ...");
